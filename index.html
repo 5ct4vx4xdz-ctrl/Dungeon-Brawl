@@ -1441,6 +1441,9 @@ function showScreen(id){
 function startGame(classId){
   G.player=new Player(classId);
   G.state='playing';
+  // Show screen first so canvas-wrap has a non-zero offsetWidth before we size the canvas
+  showScreen('game-screen');
+  resizeCanvas();
   loadFloor(1);
   document.getElementById('log').innerHTML='';
   log(`Welcome, brave ${G.player.cls.name}!`,'important');
@@ -1450,7 +1453,6 @@ function startGame(classId){
   log('');
   log(`You descend into Floor 1…`,'important');
   updateHUD();
-  showScreen('game-screen');
   canvas.focus();
 }
 
