@@ -214,6 +214,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
   pointer-events:none;max-width:200px;line-height:1.5;
   box-shadow:0 8px 24px rgba(0,0,0,0.6);
 }
+
+/* ── GAME ACTIONS ── */
+#game-actions{padding:8px 10px;border-top:1px solid #1a1620;display:flex;gap:6px;}
+.btn-action{
+  flex:1;background:#141018;border:1px solid #2a2030;border-radius:5px;
+  color:#7a7060;font-size:0.68rem;font-family:'Georgia',serif;
+  padding:6px 4px;cursor:pointer;letter-spacing:0.5px;
+  transition:color 0.15s,border-color 0.15s,background 0.15s;text-align:center;
+}
+.btn-action:hover{color:#c9a227;border-color:#c9a227;background:#1c1620;}
+.btn-action.danger:hover{color:#e74c3c;border-color:#7a2020;background:#1c1010;}
+.save-indicator{font-size:0.58rem;color:#3a5a3a;text-align:center;padding:2px 10px 4px;letter-spacing:1px;}
+
+/* ── CONFIRM DIALOG ── */
+#confirm-dialog{
+  position:fixed;inset:0;z-index:400;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.8);backdrop-filter:blur(4px);
+}
+#confirm-dialog.open{display:flex;}
+.confirm-panel{
+  background:linear-gradient(160deg,#0f0c16,#0a0812);
+  border:1px solid #3a2030;border-radius:10px;padding:28px 32px;
+  text-align:center;max-width:320px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.9);
+}
+.confirm-title{font-size:1.1rem;color:#c9a227;margin-bottom:8px;letter-spacing:1px;}
+.confirm-body{font-size:0.8rem;color:#7a7060;line-height:1.6;margin-bottom:20px;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+.confirm-btns .btn-action{flex:0 0 auto;padding:8px 20px;font-size:0.78rem;}
+
+/* ── CONTINUE SAVE BADGE ── */
+#continue-badge{
+  font-size:0.68rem;color:#5a8050;letter-spacing:1px;
+  border:1px solid #2a4028;border-radius:4px;padding:3px 10px;
+  display:none;
+}
 </style>
 </head>
 <body>
@@ -226,7 +263,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
     <div class="title-logo">Dungeon Brawl</div>
     <div class="title-sub">A Roguelike Dungeon Crawler</div>
     <div class="title-tagline">Delve into procedurally generated dungeons. Fight monsters, gather loot, and survive as long as you can.</div>
-    <button class="btn-primary" id="btn-start">Begin Adventure</button>
+    <button class="btn-primary" id="btn-continue" style="display:none;">⚔ Continue Adventure</button>
+    <div id="continue-badge">AUTO-SAVE FOUND</div>
+    <button class="btn-primary" id="btn-start">New Adventure</button>
     <div class="key-hints">
       <div class="key-hint"><kbd>WASD</kbd> Move</div>
       <div class="key-hint"><kbd>Arrow</kbd> Move</div>
@@ -300,6 +339,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
       <div class="kg"><kbd>1-0</kbd> Use item</div>
       <div class="kg"><kbd>Space</kbd> Rest (+1HP)</div>
     </div>
+    <div id="save-indicator" class="save-indicator"></div>
+    <div id="game-actions">
+      <button class="btn-action" id="btn-new-game">New Game</button>
+      <button class="btn-action danger" id="btn-quit-menu">Quit to Menu</button>
+    </div>
   </div>
 
   <div id="inventory">
@@ -310,6 +354,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
       </div>
       <div class="inv-grid" id="inv-grid"></div>
       <div class="inv-hint">Left-click: Use/Equip &nbsp;·&nbsp; Right-click: Drop &nbsp;·&nbsp; Keys 1–0: Quick use</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DIALOG ────────────────────────────── -->
+<div id="confirm-dialog">
+  <div class="confirm-panel fade-in">
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-body" id="confirm-body"></div>
+    <div class="confirm-btns">
+      <button class="btn-action danger" id="confirm-yes">Yes</button>
+      <button class="btn-action" id="confirm-no">Cancel</button>
     </div>
   </div>
 </div>
@@ -342,6 +398,66 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
 const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const dist = (ax, ay, bx, by) => Math.abs(ax - bx) + Math.abs(ay - by);
+
+// ── SAVE / LOAD ───────────────────────────────────────────────────
+const SAVE_KEY = 'dungeon-brawl-v1';
+
+function saveGame() {
+  if (!G.player || !G.player.alive) return;
+  const p = G.player;
+  const data = {
+    cls: p.cls.id, level: p.level, xp: p.xp, xpNext: p.xpNext,
+    hp: p.hp, maxHp: p.maxHp, mp: p.mp, maxMp: p.maxMp,
+    atk: p.atk, def: p.def, spd: p.spd,
+    gold: p.gold, floor: p.floor, kills: p.kills, atkBonus: p.atkBonus,
+    weapon: p.weapon, armor: p.armor,
+    inventory: p.inventory,
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    const el = document.getElementById('save-indicator');
+    if (el) { el.textContent = '✓ Saved'; setTimeout(() => { el.textContent = ''; }, 1800); }
+  } catch(e) {}
+}
+
+function hasSave() {
+  try { return !!localStorage.getItem(SAVE_KEY); } catch(e) { return false; }
+}
+
+function deleteSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    G.player = new Player(d.cls);
+    const p = G.player;
+    p.level = d.level; p.xp = d.xp; p.xpNext = d.xpNext;
+    p.hp = d.hp; p.maxHp = d.maxHp; p.mp = d.mp; p.maxMp = d.maxMp;
+    p.atk = d.atk; p.def = d.def; p.spd = d.spd;
+    p.gold = d.gold; p.floor = d.floor; p.kills = d.kills;
+    p.atkBonus = d.atkBonus || 0;
+    p.weapon = d.weapon; p.armor = d.armor;
+    p.inventory = d.inventory || [];
+    return true;
+  } catch(e) { deleteSave(); return false; }
+}
+
+// ── CONFIRM DIALOG ────────────────────────────────────────────────
+function showConfirm(title, body, onYes) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').textContent = body;
+  const dlg = document.getElementById('confirm-dialog');
+  dlg.classList.add('open');
+  const yes = document.getElementById('confirm-yes');
+  const no  = document.getElementById('confirm-no');
+  const cleanup = () => { dlg.classList.remove('open'); yes.onclick = null; no.onclick = null; };
+  yes.onclick = () => { cleanup(); onYes(); };
+  no.onclick  = () => cleanup();
+}
 
 // ── TILE CONSTANTS ───────────────────────────────────────────────
 const T = { WALL: 0, FLOOR: 1, DOOR: 2, STAIR_DOWN: 3, STAIR_UP: 4 };
@@ -1198,6 +1314,7 @@ function endTurn(){
   stepEnemies();
   updateHUD();
   if(!G.player.alive) setTimeout(showGameOver, 600);
+  else saveGame();
 }
 
 // ── INVENTORY ────────────────────────────────────────────────────
@@ -1458,6 +1575,7 @@ function startGame(classId){
 
 function showGameOver(){
   G.state='dead';
+  deleteSave();
   const p=G.player;
   document.getElementById('go-class').textContent=p.cls.name;
   document.getElementById('go-level').textContent=p.level;
@@ -1528,6 +1646,18 @@ function buildClassSelect(){
 
 // ── BUTTON WIRING ────────────────────────────────────────────────
 
+document.getElementById('btn-continue').onclick=()=>{
+  if(!loadSave()) return;
+  G.state='playing';
+  showScreen('game-screen');
+  resizeCanvas();
+  loadFloor(G.player.floor);
+  document.getElementById('log').innerHTML='';
+  log(`Welcome back, ${G.player.cls.name}!`,'important');
+  log(`Resuming Floor ${G.player.floor} — Level ${G.player.level}.`);
+  updateHUD();
+  canvas.focus();
+};
 document.getElementById('btn-start').onclick=()=>{
   G.state='class_select';
   buildClassSelect();
@@ -1545,10 +1675,32 @@ document.getElementById('btn-play-again').onclick=()=>{
 document.getElementById('btn-title').onclick=()=>{
   G.state='title';
   showScreen('title-screen');
+  refreshTitleSaveUI();
 };
 document.getElementById('inv-close-btn').onclick=()=>{
   document.getElementById('inventory').style.display='none';
 };
+document.getElementById('btn-new-game').onclick=()=>{
+  showConfirm(
+    'Start New Game?',
+    'Your current progress is auto-saved. Starting a new game will overwrite it.',
+    ()=>{ deleteSave(); G.state='class_select'; buildClassSelect(); showScreen('class-select'); }
+  );
+};
+document.getElementById('btn-quit-menu').onclick=()=>{
+  showConfirm(
+    'Quit to Menu?',
+    'Your progress has been auto-saved. You can continue from the main menu.',
+    ()=>{ saveGame(); G.state='title'; showScreen('title-screen'); refreshTitleSaveUI(); }
+  );
+};
+
+function refreshTitleSaveUI(){
+  const has=hasSave();
+  document.getElementById('btn-continue').style.display=has?'':'none';
+  document.getElementById('continue-badge').style.display=has?'':'none';
+  document.getElementById('btn-start').textContent=has?'New Adventure':'New Adventure';
+}
 
 // ── BOOT ─────────────────────────────────────────────────────────
 
@@ -1557,6 +1709,7 @@ window.addEventListener('resize',()=>{
 });
 
 resizeCanvas();
+refreshTitleSaveUI();
 requestAnimationFrame(gameLoop);
 </script>
 </body>
