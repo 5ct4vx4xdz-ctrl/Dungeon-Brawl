@@ -337,7 +337,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
       <div class="kg"><kbd>E</kbd> Stairs/Open</div>
       <div class="kg"><kbd>I</kbd> Inventory</div>
       <div class="kg"><kbd>1-0</kbd> Use item</div>
-      <div class="kg"><kbd>Space</kbd> Rest (+1HP)</div>
+      <div class="kg"><kbd>Space</kbd> Rest (scaled HP)</div>
+      <div class="kg"><kbd>F</kbd> Target &amp; Fire/Cast</div>
     </div>
     <div id="save-indicator" class="save-indicator"></div>
     <div id="game-actions">
@@ -1125,6 +1126,41 @@ function render(){
   });
 
   drawPlayer(G.player);
+
+  // Targeting reticle
+  if(G.targeting){
+    const target=G.targets[G.targetIdx];
+    if(target&&target.alive){
+      const {sx:tsx,sy:tsy}=w2s(target.x,target.y);
+      const {sx:psx,sy:psy}=w2s(G.player.x,G.player.y);
+      const pulse=0.55+Math.sin(Date.now()/180)*0.35;
+      ctx.save();
+      // Dashed line player → target
+      ctx.globalAlpha=0.4;
+      ctx.strokeStyle='#e74c3c'; ctx.lineWidth=1.5;
+      ctx.setLineDash([5,5]); ctx.lineDashOffset=-(Date.now()/60)%10;
+      ctx.beginPath(); ctx.moveTo(psx+TS/2,psy+TS/2); ctx.lineTo(tsx+TS/2,tsy+TS/2); ctx.stroke();
+      ctx.setLineDash([]);
+      // Corner brackets around target
+      ctx.globalAlpha=pulse; ctx.strokeStyle='#e74c3c'; ctx.lineWidth=2.5;
+      const cs=11;
+      ctx.beginPath();
+      ctx.moveTo(tsx+2,tsy+cs+2);    ctx.lineTo(tsx+2,tsy+2);    ctx.lineTo(tsx+cs+2,tsy+2);
+      ctx.moveTo(tsx+TS-cs-2,tsy+2); ctx.lineTo(tsx+TS-2,tsy+2); ctx.lineTo(tsx+TS-2,tsy+cs+2);
+      ctx.moveTo(tsx+TS-2,tsy+TS-cs-2); ctx.lineTo(tsx+TS-2,tsy+TS-2); ctx.lineTo(tsx+TS-cs-2,tsy+TS-2);
+      ctx.moveTo(tsx+cs+2,tsy+TS-2); ctx.lineTo(tsx+2,tsy+TS-2); ctx.lineTo(tsx+2,tsy+TS-cs-2);
+      ctx.stroke();
+      // Name label above target
+      ctx.globalAlpha=0.9;
+      ctx.font='bold 12px Georgia'; ctx.textAlign='center';
+      ctx.fillStyle='rgba(0,0,0,0.7)';
+      ctx.fillRect(tsx+TS/2-40,tsy-22,80,16);
+      ctx.fillStyle='#e74c3c';
+      ctx.fillText(`${target.name}  ${target.hp}/${target.maxHp}`,tsx+TS/2,tsy-9);
+      ctx.restore();
+    }
+  }
+
   drawParticlesAndNums();
 
   // Fog overlay — black over unseen
@@ -1442,6 +1478,94 @@ function updateHUD(){
   document.getElementById('h-armor').textContent=p.armor?`${p.armor.emoji} ${p.armor.name}`:'None';
 }
 
+// ── TARGETING SYSTEM ─────────────────────────────────────────────
+
+function getVisibleEnemies(){
+  return G.entities.filter(e=>e.kind==='enemy'&&e.alive&&(G.vis[e.y]||[])[e.x]===2);
+}
+
+function canUseRanged(){
+  const p=G.player, cls=p.cls.id;
+  if(cls==='mage'||cls==='cleric') return true;
+  return p.weapon&&p.weapon.type==='ranged';
+}
+
+function enterTargeting(){
+  if(!canUseRanged()){
+    log('You need a ranged weapon or magic ability to target at range.'); return;
+  }
+  const targets=getVisibleEnemies();
+  if(!targets.length){ log('No visible enemies to target.'); return; }
+  G.targeting=true;
+  G.targets=targets;
+  G.targetIdx=0;
+  const t=targets[0];
+  log(`Targeting ${t.name} [HP ${t.hp}/${t.maxHp}] — [F/Enter] Fire · [←→/Tab] Cycle · [Esc] Cancel`);
+}
+
+function cycleTarget(dir){
+  G.targets=getVisibleEnemies();
+  if(!G.targets.length){ G.targeting=false; return; }
+  G.targetIdx=(G.targetIdx+dir+G.targets.length)%G.targets.length;
+  const t=G.targets[G.targetIdx];
+  log(`Targeting: ${t.name} [HP ${t.hp}/${t.maxHp}]`);
+}
+
+function cancelTargeting(){ G.targeting=false; log('Targeting cancelled.'); }
+
+function fireAtTarget(){
+  const target=G.targets[G.targetIdx];
+  if(!target||!target.alive){ G.targeting=false; return; }
+  const p=G.player;
+  const cls=p.cls.id;
+  const isRangedWeapon=p.weapon&&p.weapon.type==='ranged';
+  const isCaster=cls==='mage'||cls==='cleric';
+
+  let dmg, actionName, color, mpCost=0;
+
+  if(cls==='mage'&&!isRangedWeapon){
+    mpCost=3;
+    if(p.mp<mpCost){ log('Not enough MP to cast!','damage'); G.targeting=false; return; }
+    p.mp-=mpCost;
+    const w=p.weapon||{dmg:[3,6]};
+    dmg=rng(w.dmg[0]+p.atk, w.dmg[1]+p.atk*2);
+    actionName='Magic Missile'; color='#ce93d8';
+  } else if(cls==='cleric'&&!isRangedWeapon){
+    mpCost=4;
+    if(p.mp<mpCost){ log('Not enough MP to smite!','damage'); G.targeting=false; return; }
+    p.mp-=mpCost;
+    const w=p.weapon||{dmg:[4,8]};
+    dmg=rng(w.dmg[0],w.dmg[1])+p.atk;
+    const undead=['skeleton','zombie','lich','vampire'];
+    if(undead.includes(target.eid)){
+      dmg=Math.floor(dmg*1.5);
+      log('Holy power smites the undead!','important');
+    }
+    actionName='Holy Smite'; color='#fff176';
+  } else {
+    // Ranged weapon (bow)
+    dmg=rng(p.weapon.dmg[0],p.weapon.dmg[1])+p.atk;
+    actionName='Arrow shot'; color='#a5d6a7';
+  }
+
+  const reduced=Math.max(1,dmg-target.def);
+  target.hp-=reduced;
+  spawnParticles(target.x,target.y,color,10,50,4,0.08);
+  spawnDmgNum(target.x,target.y,`-${reduced}`,color);
+  log(`${actionName} hits ${target.name} for ${reduced} damage!`);
+
+  if(target.hp<=0){
+    target.alive=false; p.kills++;
+    const leveled=p.gainXP(target.xp); p.gold+=target.goldDrop;
+    spawnParticles(target.x,target.y,'#c9a227',14,60,4,0.06);
+    log(`${target.name} slain! +${target.xp} XP, +${target.goldDrop} gold.`,'loot');
+    if(leveled){ log(`★ LEVEL UP! You are now level ${p.level}! ★`,'level'); spawnParticles(p.x,p.y,'#4fc3f7',20,80,5,0.03); }
+  }
+
+  G.targeting=false;
+  endTurn(); updateHUD();
+}
+
 // ── INPUT ────────────────────────────────────────────────────────
 
 let lastMove=0;
@@ -1468,6 +1592,19 @@ document.addEventListener('keydown', e=>{
   if(G.state!=='playing') return;
   e.preventDefault();
 
+  // ── Targeting mode intercepts all keys ──────────────────────────
+  if(G.targeting){
+    switch(e.key){
+      case 'Escape':                                    cancelTargeting(); break;
+      case 'ArrowLeft': case 'ArrowUp':
+      case 'a': case 'A': case 'h':                    cycleTarget(-1); break;
+      case 'ArrowRight': case 'ArrowDown':
+      case 'd': case 'D': case 'l': case 'Tab':        cycleTarget(1); break;
+      case 'f': case 'F': case 'Enter': case ' ':      fireAtTarget(); break;
+    }
+    return;
+  }
+
   const now=Date.now();
   const isRepeat=e.repeat;
   if(isRepeat&&now-lastMove<MOVE_DELAY) return;
@@ -1478,7 +1615,6 @@ document.addEventListener('keydown', e=>{
     case 'ArrowDown': case 's': case 'S': case 'j': tryMove(0,1);  break;
     case 'ArrowLeft': case 'a': case 'A': case 'h': tryMove(-1,0); break;
     case 'ArrowRight':case 'd': case 'D': case 'l': tryMove(1,0);  break;
-    // Diagonal (numpad style)
     case 'y': tryMove(-1,-1); break;
     case 'u': tryMove(1,-1);  break;
     case 'b': tryMove(-1,1);  break;
@@ -1486,10 +1622,25 @@ document.addEventListener('keydown', e=>{
 
     case 'e': case 'E': interactStairs(); break;
 
-    case ' ': // Rest: +1 HP, end turn
-      G.player.hp=Math.min(G.player.maxHp, G.player.hp+1);
-      endTurn(); updateHUD();
+    case 'f': case 'F': enterTargeting(); break;
+
+    case ' ':{
+      // Scaled rest — blocked when enemies are visible
+      const nearEnemies=G.entities.some(e=>e.kind==='enemy'&&e.alive&&(G.vis[e.y]||[])[e.x]===2);
+      if(nearEnemies){
+        log('Cannot rest — enemies are nearby!','damage');
+      } else {
+        const hRestore=Math.ceil(G.player.level/2);
+        const isCaster=G.player.cls.id==='mage'||G.player.cls.id==='cleric';
+        const mRestore=isCaster?1:0;
+        G.player.hp=Math.min(G.player.maxHp, G.player.hp+hRestore);
+        if(mRestore) G.player.mp=Math.min(G.player.maxMp, G.player.mp+mRestore);
+        const mpMsg=mRestore?`, ${mRestore} MP`:'';
+        log(`You rest. Recovered ${hRestore} HP${mpMsg}.`);
+        endTurn(); updateHUD();
+      }
       break;
+    }
 
     case '1': case '2': case '3': case '4': case '5':
     case '6': case '7': case '8': case '9':
@@ -1541,6 +1692,7 @@ function loadFloor(floor){
 const G={
   state:'title', player:null, dg:null,
   entities:[], vis:[], seen:[],
+  targeting:false, targets:[], targetIdx:0,
 };
 
 function showScreen(id){
@@ -1560,9 +1712,9 @@ function startGame(classId){
   loadFloor(1);
   document.getElementById('log').innerHTML='';
   log(`Welcome, brave ${G.player.cls.name}!`,'important');
-  log('Move with WASD / Arrow Keys. Bump into enemies to attack.');
-  log('Press E on stairs to change floors. I for inventory.');
-  log('Space to rest (+1 HP). 1-0 keys for quick item use.');
+  log('Move with WASD / Arrow Keys. Bump enemies to attack.');
+  log('F: target & fire spells or ranged weapons at distance.');
+  log('Space: rest (scaled HP, blocked near enemies). E: stairs.');
   log('');
   log(`You descend into Floor 1…`,'important');
   updateHUD();
