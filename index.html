@@ -413,11 +413,7 @@ function saveGame() {
     weapon: p.weapon, armor: p.armor,
     inventory: p.inventory,
   };
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
-    const el = document.getElementById('save-indicator');
-    if (el) { el.textContent = '✓ Saved'; setTimeout(() => { el.textContent = ''; }, 1800); }
-  } catch(e) {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
 }
 
 function hasSave() {
