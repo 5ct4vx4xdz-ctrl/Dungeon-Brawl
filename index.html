@@ -329,6 +329,84 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
   display:inline-flex;align-items:center;gap:3px;
 }
 
+/* ── CHARACTER ROSTER ── */
+#char-roster{
+  background:radial-gradient(ellipse at 50% 30%,#12080a 0%,#0a0812 100%);
+  gap:24px;padding:24px;
+}
+.roster-title{font-size:1.5rem;color:#c9a227;letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 20px rgba(201,162,39,0.5);}
+.roster-subtitle{font-size:0.8rem;color:#5a5040;letter-spacing:2px;}
+.roster-grid{
+  display:flex;flex-direction:column;gap:10px;
+  width:min(560px,96vw);max-height:55vh;overflow-y:auto;
+  padding-right:4px;
+  scrollbar-width:thin;scrollbar-color:#2a2030 transparent;
+}
+.roster-grid::-webkit-scrollbar{width:4px;}
+.roster-grid::-webkit-scrollbar-thumb{background:#2a2030;border-radius:2px;}
+.roster-card{
+  background:linear-gradient(160deg,#14101a,#0e0c14);
+  border:1px solid #2a2030;border-radius:10px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+.roster-card:hover{border-color:#c9a22766;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.roster-class-emoji{font-size:2.2rem;flex-shrink:0;width:44px;text-align:center;}
+.roster-info{flex:1;min-width:0;}
+.roster-char-name{font-size:1rem;color:#c9a227;letter-spacing:1px;}
+.roster-char-sub{font-size:0.7rem;color:#6a6050;margin-top:2px;}
+.roster-char-stats{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.roster-stat-chip{
+  background:#0f0d14;border:1px solid #1e1a28;border-radius:12px;
+  padding:2px 8px;font-size:0.62rem;color:#9a8060;
+}
+.roster-actions{display:flex;gap:6px;flex-shrink:0;}
+.btn-roster-play{
+  background:linear-gradient(135deg,#c9a227,#8b6914);
+  color:#0a0812;border:none;border-radius:5px;
+  padding:7px 16px;font-size:0.78rem;font-family:'Georgia',serif;
+  font-weight:bold;cursor:pointer;letter-spacing:1px;
+  transition:transform 0.1s,box-shadow 0.1s;
+  box-shadow:0 2px 0 #5a4008;
+}
+.btn-roster-play:hover{transform:translateY(-1px);box-shadow:0 3px 0 #5a4008;}
+.btn-roster-delete{
+  background:transparent;color:#5a3030;border:1px solid #3a1818;border-radius:5px;
+  padding:7px 10px;font-size:0.72rem;font-family:'Georgia',serif;cursor:pointer;
+  transition:color 0.15s,border-color 0.15s;
+}
+.btn-roster-delete:hover{color:#e74c3c;border-color:#7a2020;}
+.roster-empty{
+  text-align:center;color:#3a3028;font-style:italic;padding:30px 0;font-size:0.85rem;
+}
+.roster-new-btn{
+  background:linear-gradient(135deg,#c9a227,#8b6914);
+  color:#0a0812;border:none;border-radius:6px;
+  padding:12px 36px;font-size:1rem;font-family:'Georgia',serif;
+  font-weight:bold;letter-spacing:2px;cursor:pointer;text-transform:uppercase;
+  box-shadow:0 0 24px rgba(201,162,39,0.3),0 4px 0 #5a4008;
+  transition:transform 0.1s,box-shadow 0.1s;
+}
+.roster-new-btn:hover{transform:translateY(-2px);box-shadow:0 0 36px rgba(201,162,39,0.5),0 6px 0 #5a4008;}
+
+/* ── NAME INPUT ── */
+.name-entry-wrap{
+  width:min(540px,96vw);
+  background:linear-gradient(160deg,#14101a,#0e0c14);
+  border:1px solid #2a2030;border-radius:10px;padding:16px 20px;margin-bottom:4px;
+}
+.name-entry-label{font-size:0.72rem;color:#7a7060;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+#char-name-input{
+  width:100%;background:#0a0812;border:1px solid #3a2030;border-radius:6px;
+  color:#c9a227;font-family:'Georgia',serif;font-size:1rem;
+  padding:10px 14px;letter-spacing:1px;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+#char-name-input:focus{border-color:#c9a227;box-shadow:0 0 12px rgba(201,162,39,0.2);}
+#char-name-input::placeholder{color:#3a3028;}
+.name-entry-hint{font-size:0.62rem;color:#3a3028;margin-top:5px;}
+.class-select-prompt{font-size:0.82rem;color:#7a7060;letter-spacing:2px;text-align:center;}
+
 /* ── LEVEL-UP MODAL ── */
 #levelup-modal{
   position:fixed;inset:0;z-index:500;
@@ -364,9 +442,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
     <div class="title-logo">Dungeon Brawl</div>
     <div class="title-sub">A Roguelike Dungeon Crawler</div>
     <div class="title-tagline">Delve into procedurally generated dungeons. Fight monsters, gather loot, and survive as long as you can.</div>
-    <button class="btn-primary" id="btn-continue" style="display:none;">⚔ Continue Adventure</button>
-    <div id="continue-badge">AUTO-SAVE FOUND</div>
-    <button class="btn-primary" id="btn-start">New Adventure</button>
+    <button class="btn-primary" id="btn-start">⚔ Enter the Dungeon</button>
     <div class="key-hints">
       <div class="key-hint"><kbd>WASD</kbd> Move</div>
       <div class="key-hint"><kbd>Arrow</kbd> Move</div>
@@ -377,11 +453,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
   </div>
 </div>
 
+<!-- ── CHARACTER ROSTER ──────────────────────────── -->
+<div id="char-roster" class="screen">
+  <div class="roster-title">⚔ Your Heroes</div>
+  <div class="roster-subtitle">Select a character to continue their journey</div>
+  <div class="roster-grid" id="roster-grid">
+    <div class="roster-empty">No saved characters yet.</div>
+  </div>
+  <button class="roster-new-btn" id="btn-new-char">＋ New Character</button>
+  <button class="btn-secondary" id="btn-roster-back">← Main Menu</button>
+</div>
+
 <!-- ── CLASS SELECT ──────────────────────────────── -->
 <div id="class-select" class="screen">
-  <div class="screen-title">Choose Your Class</div>
+  <div class="name-entry-wrap">
+    <div class="name-entry-label">Character Name</div>
+    <input type="text" id="char-name-input" maxlength="20" placeholder="Enter a name…" autocomplete="off" spellcheck="false"/>
+    <div class="name-entry-hint">Up to 20 characters. Leave blank for a classic adventurer.</div>
+  </div>
+  <div class="class-select-prompt">Choose Your Class</div>
   <div class="class-grid" id="class-grid"></div>
-  <button class="btn-secondary" id="btn-back">← Back</button>
+  <button class="btn-secondary" id="btn-back">← Back to Roster</button>
 </div>
 
 <!-- ── GAME SCREEN ───────────────────────────────── -->
@@ -525,46 +617,63 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const dist = (ax, ay, bx, by) => Math.abs(ax - bx) + Math.abs(ay - by);
 
 // ── SAVE / LOAD ───────────────────────────────────────────────────
-const SAVE_KEY = 'dungeon-brawl-v1';
+const ROSTER_KEY = 'dungeon-brawl-roster';
+const MAX_CHARS = 6;
 
-function saveGame() {
-  if (!G.player || !G.player.alive) return;
-  const p = G.player;
-  const data = {
-    cls: p.cls.id, level: p.level, xp: p.xp, xpNext: p.xpNext,
-    hp: p.hp, maxHp: p.maxHp, mp: p.mp, maxMp: p.maxMp,
-    atk: p.atk, def: p.def, spd: p.spd,
-    gold: p.gold, floor: p.floor, kills: p.kills, atkBonus: p.atkBonus,
-    weapon: p.weapon, armor: p.armor,
-    inventory: p.inventory,
+function getRoster(){
+  try{ return JSON.parse(localStorage.getItem(ROSTER_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveRoster(roster){
+  try{ localStorage.setItem(ROSTER_KEY, JSON.stringify(roster)); }catch(e){}
+}
+
+function saveGame(){
+  if(!G.player||!G.player.alive||!G.currentCharId) return;
+  const p=G.player;
+  const roster=getRoster();
+  const data={
+    id:G.currentCharId, name:p.name||'Hero',
+    cls:p.cls.id, level:p.level, xp:p.xp, xpNext:p.xpNext,
+    hp:p.hp, maxHp:p.maxHp, mp:p.mp, maxMp:p.maxMp,
+    atk:p.atk, def:p.def, spd:p.spd,
+    gold:p.gold, floor:p.floor, kills:p.kills, atkBonus:p.atkBonus||0,
+    weapon:p.weapon, armor:p.armor,
+    helmet:p.helmet, shield:p.shield, leggings:p.leggings,
+    boots:p.boots, ring1:p.ring1, ring2:p.ring2, amulet:p.amulet,
+    inventory:p.inventory,
+    lastPlayed:Date.now(),
   };
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e) {}
+  const idx=roster.findIndex(c=>c.id===G.currentCharId);
+  if(idx>=0) roster[idx]=data; else roster.push(data);
+  saveRoster(roster);
 }
 
-function hasSave() {
-  try { return !!localStorage.getItem(SAVE_KEY); } catch(e) { return false; }
+function deleteCharacter(id){
+  const roster=getRoster().filter(c=>c.id!==id);
+  saveRoster(roster);
 }
 
-function deleteSave() {
-  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
-}
-
-function loadSave() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return false;
-    const d = JSON.parse(raw);
-    G.player = new Player(d.cls);
-    const p = G.player;
-    p.level = d.level; p.xp = d.xp; p.xpNext = d.xpNext;
-    p.hp = d.hp; p.maxHp = d.maxHp; p.mp = d.mp; p.maxMp = d.maxMp;
-    p.atk = d.atk; p.def = d.def; p.spd = d.spd;
-    p.gold = d.gold; p.floor = d.floor; p.kills = d.kills;
-    p.atkBonus = d.atkBonus || 0;
-    p.weapon = d.weapon; p.armor = d.armor;
-    p.inventory = d.inventory || [];
+function loadCharacter(id){
+  try{
+    const roster=getRoster();
+    const d=roster.find(c=>c.id===id);
+    if(!d) return false;
+    G.currentCharId=id;
+    G.player=new Player(d.cls);
+    const p=G.player;
+    p.name=d.name||'Hero';
+    p.level=d.level; p.xp=d.xp; p.xpNext=d.xpNext;
+    p.hp=d.hp; p.maxHp=d.maxHp; p.mp=d.mp; p.maxMp=d.maxMp;
+    p.atk=d.atk; p.def=d.def; p.spd=d.spd;
+    p.gold=d.gold; p.floor=d.floor; p.kills=d.kills;
+    p.atkBonus=d.atkBonus||0;
+    p.weapon=d.weapon; p.armor=d.armor;
+    p.helmet=d.helmet||null; p.shield=d.shield||null;
+    p.leggings=d.leggings||null; p.boots=d.boots||null;
+    p.ring1=d.ring1||null; p.ring2=d.ring2||null; p.amulet=d.amulet||null;
+    p.inventory=d.inventory||[];
     return true;
-  } catch(e) { deleteSave(); return false; }
+  }catch(e){ return false; }
 }
 
 // ── CONFIRM DIALOG ────────────────────────────────────────────────
@@ -1182,7 +1291,7 @@ function uid(){ return ++_uid; }
 class Player {
   constructor(classId) {
     const c=CLASSES.find(x=>x.id===classId);
-    this.cls=c; this.x=0; this.y=0;
+    this.cls=c; this.name='Hero'; this.x=0; this.y=0;
     this.maxHp=c.hp; this._hp=c.hp;
     this.maxMp=c.mp; this._mp=c.mp;
     this.atk=c.atk; this.def=c.def; this.spd=c.spd;
@@ -2335,7 +2444,7 @@ function log(msg, cls=''){
 
 function updateHUD(){
   const p=G.player;
-  document.getElementById('h-name').textContent=`${p.cls.name} Lv.${p.level}`;
+  document.getElementById('h-name').textContent=`${p.name||p.cls.name} · ${p.cls.name} Lv.${p.level}`;
   document.getElementById('h-floor').textContent=`Floor ${p.floor}`;
   document.getElementById('mini-floor').textContent=p.floor;
   document.getElementById('h-gold').textContent=`💰 ${p.gold}`;
@@ -2669,25 +2778,29 @@ const G={
   entities:[], vis:[], seen:[],
   targeting:false, targets:[], targetIdx:0,
   levelUpPending:false, shop:null, skipEnemyTurn:false,
+  currentCharId:null,
 };
 
 function showScreen(id){
-  ['title-screen','class-select','game-screen','game-over'].forEach(sid=>{
+  ['title-screen','char-roster','class-select','game-screen','game-over'].forEach(sid=>{
     const el=document.getElementById(sid);
     if(sid==='game-screen') el.style.display=id===sid?'flex':'none';
     else { el.classList.toggle('active', sid===id); }
   });
 }
 
-function startGame(classId){
+function startGame(classId, charName){
+  // Generate a unique ID for this new character
+  G.currentCharId = Date.now().toString(36)+Math.random().toString(36).slice(2);
   G.player=new Player(classId);
+  G.player.name = (charName||'').trim() || G.player.cls.name;
   G.state='playing';
   // Show screen first so canvas-wrap has a non-zero offsetWidth before we size the canvas
   showScreen('game-screen');
   resizeCanvas();
   loadFloor(1);
   document.getElementById('log').innerHTML='';
-  log(`Welcome, brave ${G.player.cls.name}!`,'important');
+  log(`Welcome, ${G.player.name} the ${G.player.cls.name}!`,'important');
   log('Move with WASD / Arrow Keys. Bump enemies to attack.');
   log('F: target & fire spells or ranged weapons at distance.');
   log('Space: rest (scaled HP, blocked near enemies). E: stairs.');
@@ -2699,9 +2812,11 @@ function startGame(classId){
 
 function showGameOver(){
   G.state='dead';
-  deleteSave();
+  // Remove this character from the roster (they died)
+  if(G.currentCharId) deleteCharacter(G.currentCharId);
+  G.currentCharId=null;
   const p=G.player;
-  document.getElementById('go-class').textContent=p.cls.name;
+  document.getElementById('go-class').textContent=`${p.name||'Hero'} the ${p.cls.name}`;
   document.getElementById('go-level').textContent=p.level;
   document.getElementById('go-floor').textContent=p.floor;
   document.getElementById('go-gold').textContent=p.gold;
@@ -2748,9 +2863,85 @@ function showGameOver(){
   initSparks(); titleLoop();
 })();
 
+// ── ROSTER BUILD ─────────────────────────────────────────────────
+
+function buildCharRoster(){
+  const grid=document.getElementById('roster-grid');
+  grid.innerHTML='';
+  const roster=getRoster();
+  if(roster.length===0){
+    grid.innerHTML='<div class="roster-empty">No saved characters yet.<br>Create your first hero below!</div>';
+    return;
+  }
+  // Sort by most recently played
+  roster.slice().sort((a,b)=>(b.lastPlayed||0)-(a.lastPlayed||0)).forEach(char=>{
+    const cls=CLASSES.find(c=>c.id===char.cls)||{emoji:'⚔️',name:'Unknown'};
+    const card=document.createElement('div');
+    card.className='roster-card';
+    const lastDate=char.lastPlayed?new Date(char.lastPlayed).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
+    card.innerHTML=`
+      <div class="roster-class-emoji">${cls.emoji}</div>
+      <div class="roster-info">
+        <div class="roster-char-name">${char.name||'Hero'}</div>
+        <div class="roster-char-sub">${cls.name} · Last played ${lastDate}</div>
+        <div class="roster-char-stats">
+          <span class="roster-stat-chip">Lv ${char.level}</span>
+          <span class="roster-stat-chip">Floor ${char.floor}</span>
+          <span class="roster-stat-chip">💰 ${char.gold}</span>
+          <span class="roster-stat-chip">⚔ ${char.kills} kills</span>
+        </div>
+      </div>
+      <div class="roster-actions">
+        <button class="btn-roster-play" data-id="${char.id}">▶ Play</button>
+        <button class="btn-roster-delete" data-id="${char.id}" title="Delete">✕</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  // Wire up buttons
+  grid.querySelectorAll('.btn-roster-play').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=btn.dataset.id;
+      if(!loadCharacter(id)) return;
+      G.state='playing';
+      showScreen('game-screen');
+      resizeCanvas();
+      loadFloor(G.player.floor);
+      document.getElementById('log').innerHTML='';
+      log(`Welcome back, ${G.player.name} the ${G.player.cls.name}!`,'important');
+      log(`Resuming Floor ${G.player.floor} — Level ${G.player.level}.`);
+      updateHUD();
+      canvas.focus();
+    };
+  });
+  grid.querySelectorAll('.btn-roster-delete').forEach(btn=>{
+    btn.onclick=()=>{
+      const id=btn.dataset.id;
+      const char=getRoster().find(c=>c.id===id);
+      const name=char?char.name:'this character';
+      showConfirm(
+        'Delete Character?',
+        `Are you sure you want to permanently delete ${name}? This cannot be undone.`,
+        ()=>{ deleteCharacter(id); buildCharRoster(); }
+      );
+    };
+  });
+}
+
 // ── CLASS SELECT BUILD ────────────────────────────────────────────
 
+// Allow pressing Enter in the name field to jump focus to first class card
+document.getElementById('char-name-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const first=document.querySelector('#class-grid .class-card');
+    if(first) first.focus();
+  }
+});
+
 function buildClassSelect(){
+  // Clear name input for fresh creation
+  document.getElementById('char-name-input').value='';
   const grid=document.getElementById('class-grid');
   grid.innerHTML='';
   CLASSES.forEach(cls=>{
@@ -2763,69 +2954,90 @@ function buildClassSelect(){
       <div class="class-stats">
         ${cls.stats.map(s=>`<span class="stat-chip">${s}</span>`).join('')}
       </div>`;
-    card.onclick=()=>startGame(cls.id);
+    const go=()=>{
+      const name=document.getElementById('char-name-input').value;
+      startGame(cls.id, name);
+    };
+    card.onclick=go;
+    card.tabIndex=0;
+    card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') go(); });
     grid.appendChild(card);
   });
 }
 
 // ── BUTTON WIRING ────────────────────────────────────────────────
 
-document.getElementById('btn-continue').onclick=()=>{
-  if(!loadSave()) return;
-  G.state='playing';
-  showScreen('game-screen');
-  resizeCanvas();
-  loadFloor(G.player.floor);
-  document.getElementById('log').innerHTML='';
-  log(`Welcome back, ${G.player.cls.name}!`,'important');
-  log(`Resuming Floor ${G.player.floor} — Level ${G.player.level}.`);
-  updateHUD();
-  canvas.focus();
-};
+// Title → Roster
 document.getElementById('btn-start').onclick=()=>{
+  G.state='roster';
+  buildCharRoster();
+  showScreen('char-roster');
+};
+
+// Roster → New Character (class select)
+document.getElementById('btn-new-char').onclick=()=>{
+  const roster=getRoster();
+  if(roster.length>=MAX_CHARS){
+    showConfirm(
+      'Character Limit Reached',
+      `You have ${MAX_CHARS} saved characters (the maximum). Delete one to create a new hero.`,
+      ()=>{}
+    );
+    return;
+  }
   G.state='class_select';
   buildClassSelect();
   showScreen('class-select');
+  // Auto-focus name input after brief delay (screen transition)
+  setTimeout(()=>document.getElementById('char-name-input').focus(), 80);
 };
-document.getElementById('btn-back').onclick=()=>{
+
+// Roster → Main Menu
+document.getElementById('btn-roster-back').onclick=()=>{
   G.state='title';
   showScreen('title-screen');
 };
+
+// Class select → back to roster
+document.getElementById('btn-back').onclick=()=>{
+  G.state='roster';
+  buildCharRoster();
+  showScreen('char-roster');
+};
+
+// Game Over → back to roster
 document.getElementById('btn-play-again').onclick=()=>{
-  G.state='class_select';
-  buildClassSelect();
-  showScreen('class-select');
+  G.state='roster';
+  buildCharRoster();
+  showScreen('char-roster');
 };
 document.getElementById('btn-title').onclick=()=>{
   G.state='title';
   showScreen('title-screen');
-  refreshTitleSaveUI();
 };
+
 document.getElementById('inv-close-btn').onclick=()=>{
   document.getElementById('inventory').style.display='none';
 };
 document.getElementById('shop-close-btn').onclick=()=>closeShop();
+
+// In-game: New Character button → save current, go to roster
 document.getElementById('btn-new-game').onclick=()=>{
   showConfirm(
-    'Start New Game?',
-    'Your current progress is auto-saved. Starting a new game will overwrite it.',
-    ()=>{ deleteSave(); G.state='class_select'; buildClassSelect(); showScreen('class-select'); }
-  );
-};
-document.getElementById('btn-quit-menu').onclick=()=>{
-  showConfirm(
-    'Quit to Menu?',
-    'Your progress has been auto-saved. You can continue from the main menu.',
-    ()=>{ saveGame(); G.state='title'; showScreen('title-screen'); refreshTitleSaveUI(); }
+    'Create New Character?',
+    'Your current character is auto-saved. Switch to a different hero or create a new one from the roster.',
+    ()=>{ saveGame(); G.state='roster'; buildCharRoster(); showScreen('char-roster'); }
   );
 };
 
-function refreshTitleSaveUI(){
-  const has=hasSave();
-  document.getElementById('btn-continue').style.display=has?'':'none';
-  document.getElementById('continue-badge').style.display=has?'':'none';
-  document.getElementById('btn-start').textContent=has?'New Adventure':'New Adventure';
-}
+// In-game: Quit to Menu
+document.getElementById('btn-quit-menu').onclick=()=>{
+  showConfirm(
+    'Quit to Menu?',
+    'Your progress has been auto-saved. You can continue your adventure from the roster.',
+    ()=>{ saveGame(); G.state='title'; showScreen('title-screen'); }
+  );
+};
 
 // ── BOOT ─────────────────────────────────────────────────────────
 
@@ -2834,7 +3046,6 @@ window.addEventListener('resize',()=>{
 });
 
 resizeCanvas();
-refreshTitleSaveUI();
 requestAnimationFrame(gameLoop);
 </script>
 </body>
