@@ -114,13 +114,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
 .bar-xp{background:linear-gradient(90deg,#3a6a1a,#27ae60);}
 .bar-text{font-size:0.6rem;color:#6a6050;width:52px;text-align:right;}
 
-.equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px;}
-.equip-box{
-  background:#0f0d14;border:1px solid #1e1a28;border-radius:5px;
-  padding:5px 7px;font-size:0.68rem;
+.equip-list{display:flex;flex-direction:column;gap:2px;margin-top:7px;}
+.equip-row{
+  display:flex;align-items:center;gap:6px;
+  background:#0f0d14;border:1px solid #1a1628;border-radius:4px;
+  padding:3px 6px;font-size:0.65rem;
 }
-.equip-label{color:#4a4040;font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;}
-.equip-val{color:#a0907a;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.equip-row.empty{opacity:0.35;}
+.equip-icon{font-size:0.85rem;flex-shrink:0;width:18px;text-align:center;line-height:1;}
+.equip-body{display:flex;flex-direction:column;min-width:0;flex:1;}
+.equip-slot-label{font-size:0.52rem;color:#3a3028;text-transform:uppercase;letter-spacing:1px;line-height:1.2;}
+.equip-item-name{color:#a0907a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;}
+.equip-item-stat{color:#c9a227;font-size:0.6rem;line-height:1.2;}
 
 .stats-row{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
 .stat-badge{
@@ -347,11 +352,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
         <div class="stat-badge"><div class="sv" id="h-atk">—</div><div>ATK</div></div>
         <div class="stat-badge"><div class="sv" id="h-def">—</div><div>DEF</div></div>
         <div class="stat-badge"><div class="sv" id="h-spd">—</div><div>SPD</div></div>
+        <div class="stat-badge"><div class="sv" id="h-maxhp">—</div><div>MaxHP</div></div>
       </div>
-      <div class="equip-grid" style="margin-top:8px;">
-        <div class="equip-box"><div class="equip-label">Weapon</div><div class="equip-val" id="h-weapon">—</div></div>
-        <div class="equip-box"><div class="equip-label">Armor</div><div class="equip-val" id="h-armor">—</div></div>
-      </div>
+      <div class="equip-list" id="equip-list"></div>
     </div>
 
     <div id="log-wrap">
@@ -549,6 +552,52 @@ const ARMORS = {
   dragon:   { name: 'Dragon Scale',emoji: '🐉', def: 12,rarity: 3 },
 };
 
+const HELMETS = {
+  none:          { name: 'None',          emoji: '—',  def: 0, rarity: 0 },
+  leather_cap:   { name: 'Leather Cap',   emoji: '🎩', def: 1, rarity: 0 },
+  iron_helm:     { name: 'Iron Helm',     emoji: '⛑️', def: 3, rarity: 1 },
+  steel_helm:    { name: 'Steel Helm',    emoji: '🪖', def: 5, rarity: 2 },
+  dragon_helm:   { name: 'Dragon Helm',   emoji: '🐲', def: 8, rarity: 3 },
+};
+
+const SHIELDS = {
+  wooden_shield: { name: 'Wooden Shield', emoji: '🛡️', def: 2, rarity: 0 },
+  iron_shield:   { name: 'Iron Shield',   emoji: '🛡️', def: 4, rarity: 1 },
+  tower_shield:  { name: 'Tower Shield',  emoji: '🛡️', def: 7, rarity: 2 },
+  aegis:         { name: 'Aegis',         emoji: '🛡️', def: 10,rarity: 3 },
+};
+
+const LEGGINGS = {
+  leather_legs:  { name: 'Leather Greaves', emoji: '🩲', def: 1, rarity: 0 },
+  chain_legs:    { name: 'Chain Leggings',  emoji: '🩱', def: 3, rarity: 1 },
+  plate_legs:    { name: 'Plate Greaves',   emoji: '🦺', def: 5, rarity: 2 },
+  dragon_legs:   { name: 'Dragon Greaves',  emoji: '🐉', def: 8, rarity: 3 },
+};
+
+const BOOTS = {
+  leather_boots: { name: 'Leather Boots', emoji: '👟', def: 1, spd: 0, rarity: 0 },
+  swift_boots:   { name: 'Swift Boots',   emoji: '👟', def: 1, spd: 2, rarity: 1 },
+  iron_boots:    { name: 'Iron Boots',    emoji: '👢', def: 3, spd:-1, rarity: 1 },
+  dragon_boots:  { name: 'Dragon Boots',  emoji: '👢', def: 5, spd: 1, rarity: 3 },
+};
+
+// Rings and amulets use bonus fields: atkBonus, defBonus, hpBonus, mpBonus, spdBonus
+const RINGS = {
+  ring_str:    { name: 'Ring of Strength',   emoji: '💍', atkBonus: 3,              rarity: 1 },
+  ring_def:    { name: 'Ring of Protection', emoji: '💍', defBonus: 2,              rarity: 1 },
+  ring_vit:    { name: 'Ring of Vitality',   emoji: '💍', hpBonus:  10,             rarity: 2 },
+  ring_swift:  { name: 'Ring of Swiftness',  emoji: '💍', spdBonus: 2,              rarity: 2 },
+  ring_power:  { name: 'Ring of Power',      emoji: '💍', atkBonus: 4, defBonus: 2, rarity: 3 },
+  ring_mana:   { name: 'Ring of Mana',       emoji: '💍', mpBonus:  12,             rarity: 1 },
+};
+
+const AMULETS = {
+  amulet_wisdom: { name: 'Amulet of Wisdom', emoji: '📿', mpBonus:  15,             rarity: 1 },
+  amulet_power:  { name: 'Amulet of Power',  emoji: '📿', atkBonus: 3, defBonus: 3, rarity: 2 },
+  amulet_life:   { name: 'Amulet of Life',   emoji: '📿', hpBonus:  20,             rarity: 2 },
+  amulet_arcane: { name: 'Arcane Amulet',    emoji: '📿', mpBonus:  25, atkBonus: 4, rarity: 3 },
+};
+
 const CONSUMABLES = [
   {
     id:'hp_pot', name:'Health Potion', emoji:'🧪', color:'#e53935', rarity: 0,
@@ -743,20 +792,57 @@ function makeChest(x,y,floor){
 }
 
 function makeFloorItem(floor){
+  const maxRarity=Math.floor(floor/2)+1;
   const r=Math.random();
-  if(r<0.45){
+
+  if(r<0.35){
+    // Consumable
     const c=CONSUMABLES[rng(0,Math.min(CONSUMABLES.length-1,2+Math.floor(floor/2)))];
     return {kind:'consumable',id:uid(),...c};
-  } else if(r<0.72){
-    const keys=Object.keys(WEAPONS).filter(k=>WEAPONS[k].rarity<=Math.floor(floor/2)+1&&k!=='fists');
+  } else if(r<0.52){
+    // Weapon
+    const keys=Object.keys(WEAPONS).filter(k=>WEAPONS[k].rarity<=maxRarity&&k!=='fists');
     if(!keys.length) return null;
     const k=keys[rng(0,keys.length-1)];
     return {kind:'weapon',id:uid(),wid:k,...WEAPONS[k]};
-  } else {
-    const keys=Object.keys(ARMORS).filter(k=>ARMORS[k].rarity<=Math.floor(floor/2)+1);
-    if(!keys.length) return null;
+  } else if(r<0.62){
+    // Body armor
+    const keys=Object.keys(ARMORS).filter(k=>ARMORS[k].rarity<=maxRarity);
     const k=keys[rng(0,keys.length-1)];
     return {kind:'armor',id:uid(),aid:k,...ARMORS[k]};
+  } else if(r<0.70){
+    // Helmet
+    const keys=Object.keys(HELMETS).filter(k=>HELMETS[k].rarity<=maxRarity&&k!=='none');
+    if(!keys.length) return null;
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'helmet',id:uid(),hid:k,...HELMETS[k]};
+  } else if(r<0.76){
+    // Shield
+    const keys=Object.keys(SHIELDS).filter(k=>SHIELDS[k].rarity<=maxRarity);
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'shield',id:uid(),sid:k,...SHIELDS[k]};
+  } else if(r<0.82){
+    // Leggings
+    const keys=Object.keys(LEGGINGS).filter(k=>LEGGINGS[k].rarity<=maxRarity);
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'leggings',id:uid(),lid:k,...LEGGINGS[k]};
+  } else if(r<0.87){
+    // Boots
+    const keys=Object.keys(BOOTS).filter(k=>BOOTS[k].rarity<=maxRarity);
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'boots',id:uid(),bid:k,...BOOTS[k]};
+  } else if(r<0.93){
+    // Ring
+    const keys=Object.keys(RINGS).filter(k=>RINGS[k].rarity<=maxRarity);
+    if(!keys.length) return null;
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'ring',id:uid(),rid:k,...RINGS[k]};
+  } else {
+    // Amulet
+    const keys=Object.keys(AMULETS).filter(k=>AMULETS[k].rarity<=maxRarity);
+    if(!keys.length) return null;
+    const k=keys[rng(0,keys.length-1)];
+    return {kind:'amulet',id:uid(),amid:k,...AMULETS[k]};
   }
 }
 
@@ -787,26 +873,47 @@ class Player {
     this.gold=0; this.floor=1; this.kills=0;
     this.atkBonus=0;
     const w=WEAPONS[c.weapon]; const a=ARMORS[c.armor];
-    this.weapon={wid:c.weapon,...w};
-    this.armor={aid:c.armor,...a};
+    this.weapon  = {wid:c.weapon, ...w};
+    this.armor   = {aid:c.armor,  ...a};
+    this.helmet  = null;
+    this.shield  = null;
+    this.leggings= null;
+    this.boots   = null;
+    this.ring1   = null;
+    this.ring2   = null;
+    this.amulet  = null;
     this.inventory=[];
     this.alive=true;
   }
+
+  // HP/MP clamped to effective max (base + accessory bonuses)
+  get effectiveMaxHp(){ return this.maxHp+(this.ring1?.hpBonus||0)+(this.ring2?.hpBonus||0)+(this.amulet?.hpBonus||0); }
+  get effectiveMaxMp(){ return this.maxMp+(this.ring1?.mpBonus||0)+(this.ring2?.mpBonus||0)+(this.amulet?.mpBonus||0); }
   get hp(){ return this._hp; }
-  set hp(v){ this._hp=clamp(v,0,this.maxHp); }
+  set hp(v){ this._hp=clamp(v,0,this.effectiveMaxHp); }
   get mp(){ return this._mp; }
-  set mp(v){ this._mp=clamp(v,0,this.maxMp); }
+  set mp(v){ this._mp=clamp(v,0,this.effectiveMaxMp); }
 
   get totalAtk(){
     const w=this.weapon;
     const wDmg=w?Math.floor((w.dmg[0]+w.dmg[1])/2):1;
-    return this.atk+wDmg+this.atkBonus;
+    return this.atk+wDmg+this.atkBonus
+      +(this.ring1?.atkBonus||0)+(this.ring2?.atkBonus||0)+(this.amulet?.atkBonus||0);
   }
-  get totalDef(){ return this.def+(this.armor?this.armor.def:0); }
+  get totalDef(){
+    return this.def
+      +(this.armor?.def||0)+(this.helmet?.def||0)+(this.shield?.def||0)
+      +(this.leggings?.def||0)+(this.boots?.def||0)
+      +(this.ring1?.defBonus||0)+(this.ring2?.defBonus||0)+(this.amulet?.defBonus||0);
+  }
+  get totalSpd(){
+    return this.spd+(this.boots?.spd||0)+(this.ring1?.spdBonus||0)+(this.ring2?.spdBonus||0);
+  }
 
   rollDamage(){
     const w=this.weapon||{dmg:[1,3]};
-    return rng(w.dmg[0],w.dmg[1])+this.atk+this.atkBonus;
+    return rng(w.dmg[0],w.dmg[1])+this.atk+this.atkBonus
+      +(this.ring1?.atkBonus||0)+(this.ring2?.atkBonus||0)+(this.amulet?.atkBonus||0);
   }
 
   gainXP(amount){
@@ -1421,17 +1528,27 @@ function useInventoryItem(idx){
       log(msg, type==='heal'?'loot':undefined);
       if(type==='heal') spawnParticles(G.player.x,G.player.y,'#2ecc71',12,50,4,0.02);
     }
-  } else if(item.kind==='weapon'){
-    const old=G.player.weapon;
-    G.player.weapon={...item};
-    G.player.inventory.splice(idx,1);
-    if(old) G.player.inventory.push({...old, kind:'weapon'});
-    log(`Equipped ${item.name}.`,'loot');
-  } else if(item.kind==='armor'){
-    const old=G.player.armor;
-    G.player.armor={...item};
-    G.player.inventory.splice(idx,1);
-    if(old) G.player.inventory.push({...old, kind:'armor'});
+  } else {
+    // All equippable gear — map kind to player slot
+    const slotMap={
+      weapon:'weapon', armor:'armor', helmet:'helmet', shield:'shield',
+      leggings:'leggings', boots:'boots', amulet:'amulet',
+    };
+    if(item.kind==='ring'){
+      // Fill ring1 first, then ring2; swap ring1 if both full
+      const old = !G.player.ring1 ? null : !G.player.ring2 ? null : G.player.ring1;
+      if(!G.player.ring1)       G.player.ring1={...item};
+      else if(!G.player.ring2)  G.player.ring2={...item};
+      else { G.player.ring1={...item}; }
+      G.player.inventory.splice(idx,1);
+      if(old) G.player.inventory.push({...old,kind:'ring'});
+    } else if(slotMap[item.kind]!==undefined){
+      const slot=slotMap[item.kind];
+      const old=G.player[slot];
+      G.player[slot]={...item};
+      G.player.inventory.splice(idx,1);
+      if(old) G.player.inventory.push({...old,kind:item.kind});
+    }
     log(`Equipped ${item.name}.`,'loot');
   }
   updateHUD(); renderInventory();
@@ -1457,6 +1574,19 @@ function itemSellPrice(item){
 
 function itemComparison(item){
   const p=G.player;
+  // Gear with a DEF value — compare against the matching slot
+  const defSlots={armor:p.armor, helmet:p.helmet, shield:p.shield, leggings:p.leggings, boots:p.boots};
+  if(defSlots[item.kind]!==undefined){
+    const equipped=defSlots[item.kind];
+    const curDef=equipped?.def||0;
+    const newDef=item.def||0;
+    const diff=newDef-curDef;
+    const curSpd=equipped?.spd||0, newSpd=item.spd||0, spdDiff=newSpd-curSpd;
+    let text=diff!==0?`${diff>0?'+':''}${diff} DEF`:'= DEF';
+    if(spdDiff!==0) text+=` ${spdDiff>0?'+':''}${spdDiff} SPD`;
+    const cls=diff>0||(diff===0&&spdDiff>0)?'better':diff<0||(diff===0&&spdDiff<0)?'worse':'same';
+    return {text, cls, arrow:cls==='better'?'↑':cls==='worse'?'↓':'='};
+  }
   if(item.kind==='weapon'&&p.weapon){
     const curAvg=(p.weapon.dmg[0]+p.weapon.dmg[1])/2;
     const newAvg=(item.dmg[0]+item.dmg[1])/2;
@@ -1465,11 +1595,23 @@ function itemComparison(item){
     if(diff<0) return {text:`${diff} dmg avg`,cls:'worse', arrow:'↓'};
     return {text:'same dmg',cls:'same',arrow:'='};
   }
-  if(item.kind==='armor'&&p.armor){
-    const diff=item.def-p.armor.def;
-    if(diff>0) return {text:`+${diff} DEF`,cls:'better',arrow:'↑'};
-    if(diff<0) return {text:`${diff} DEF`,cls:'worse', arrow:'↓'};
-    return {text:'same DEF',cls:'same',arrow:'='};
+  // Rings — compare net bonus vs whichever ring slot is worse
+  if(item.kind==='ring'){
+    const equipped=p.ring1||p.ring2;
+    if(!equipped) return {text:'new slot',cls:'better',arrow:'↑'};
+    const newAtk=item.atkBonus||0, curAtk=equipped.atkBonus||0;
+    const diff=newAtk-curAtk+(item.defBonus||0)-(equipped.defBonus||0);
+    if(diff>0) return {text:'better bonuses',cls:'better',arrow:'↑'};
+    if(diff<0) return {text:'weaker bonuses',cls:'worse', arrow:'↓'};
+    return {text:'similar',cls:'same',arrow:'='};
+  }
+  if(item.kind==='amulet'&&p.amulet){
+    const newTotal=(item.atkBonus||0)+(item.defBonus||0)+(item.hpBonus||0)/5+(item.mpBonus||0)/5;
+    const curTotal=(p.amulet.atkBonus||0)+(p.amulet.defBonus||0)+(p.amulet.hpBonus||0)/5+(p.amulet.mpBonus||0)/5;
+    const diff=newTotal-curTotal;
+    if(diff>0) return {text:'better bonuses',cls:'better',arrow:'↑'};
+    if(diff<0) return {text:'weaker bonuses',cls:'worse', arrow:'↓'};
+    return {text:'similar',cls:'same',arrow:'='};
   }
   return null;
 }
@@ -1491,13 +1633,23 @@ function renderInventory(){
   // ── Equipped banner ───────────────────────────────────────────
   const bar=document.getElementById('inv-equipped-bar');
   bar.innerHTML='<div class="inv-equipped-label">Currently Equipped</div>';
-  const wSlot=document.createElement('div');
-  wSlot.className='inv-equipped-item';
-  wSlot.innerHTML=`${p.weapon?.emoji||'✊'} <span>${p.weapon?.name||'Fists'}</span> DMG ${p.weapon?.dmg[0]||1}–${p.weapon?.dmg[1]||2}`;
-  const aSlot=document.createElement('div');
-  aSlot.className='inv-equipped-item';
-  aSlot.innerHTML=`${p.armor?.emoji||'—'} <span>${p.armor?.name||'None'}</span> DEF +${p.armor?.def||0}`;
-  bar.appendChild(wSlot); bar.appendChild(aSlot);
+  const bannerSlots=[
+    {label:'Wpn', item:p.weapon,   stat:p.weapon?`DMG ${p.weapon.dmg[0]}–${p.weapon.dmg[1]}`:'—'},
+    {label:'Helm',item:p.helmet,   stat:p.helmet ?`DEF+${p.helmet.def}`:'—'},
+    {label:'Arm', item:p.armor,    stat:p.armor  ?`DEF+${p.armor.def}`:'—'},
+    {label:'Shld',item:p.shield,   stat:p.shield ?`DEF+${p.shield.def}`:'—'},
+    {label:'Legs',item:p.leggings, stat:p.leggings?`DEF+${p.leggings.def}`:'—'},
+    {label:'Boot',item:p.boots,    stat:p.boots  ?`DEF+${p.boots.def}${p.boots.spd?` S+${p.boots.spd}`:''}` :'—'},
+    {label:'Rng1',item:p.ring1,    stat:p.ring1  ?ringStatStr(p.ring1):'—'},
+    {label:'Rng2',item:p.ring2,    stat:p.ring2  ?ringStatStr(p.ring2):'—'},
+    {label:'Amlt',item:p.amulet,   stat:p.amulet ?ringStatStr(p.amulet):'—'},
+  ];
+  bannerSlots.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='inv-equipped-item';
+    d.innerHTML=`${s.item?.emoji||'—'} <span>${s.item?.name||s.label}</span> ${s.stat}`;
+    bar.appendChild(d);
+  });
 
   // ── Slot list ─────────────────────────────────────────────────
   const grid=document.getElementById('inv-grid');
@@ -1512,8 +1664,14 @@ function renderInventory(){
 
       // Stat line
       let statText='';
-      if(item.kind==='weapon') statText=`${item.type||'melee'} · DMG ${item.dmg[0]}–${item.dmg[1]}`;
-      else if(item.kind==='armor') statText=`armor · DEF +${item.def}`;
+      if(item.kind==='weapon')   statText=`${item.type||'melee'} · DMG ${item.dmg[0]}–${item.dmg[1]}`;
+      else if(item.kind==='armor')    statText=`body armor · DEF +${item.def}`;
+      else if(item.kind==='helmet')   statText=`helmet · DEF +${item.def}`;
+      else if(item.kind==='shield')   statText=`shield · DEF +${item.def}`;
+      else if(item.kind==='leggings') statText=`leggings · DEF +${item.def}`;
+      else if(item.kind==='boots')    statText=`boots · DEF +${item.def}${item.spd?` SPD +${item.spd}`:''}`;
+      else if(item.kind==='ring')     statText=`ring · ${ringStatStr(item)||'no bonus'}`;
+      else if(item.kind==='amulet')   statText=`amulet · ${ringStatStr(item)||'no bonus'}`;
       else statText='consumable';
 
       // Comparison badge
@@ -1572,17 +1730,19 @@ function updateHUD(){
   document.getElementById('mini-floor').textContent=p.floor;
   document.getElementById('h-gold').textContent=`💰 ${p.gold}`;
 
-  const hpPct=p.hp/p.maxHp*100;
+  const ehp=p.effectiveMaxHp;
+  const hpPct=p.hp/ehp*100;
   document.getElementById('h-hp-bar').style.width=hpPct+'%';
   document.getElementById('h-hp-bar').style.background=
     hpPct>50?'linear-gradient(90deg,#8b1a1a,#c0392b)':
     hpPct>25?'linear-gradient(90deg,#7a4010,#e67e22)':
              'linear-gradient(90deg,#7a0a0a,#e74c3c)';
-  document.getElementById('h-hp-text').textContent=`${p.hp}/${p.maxHp}`;
+  document.getElementById('h-hp-text').textContent=`${p.hp}/${ehp}`;
 
-  const mpPct=p.mp/p.maxMp*100;
+  const emp=p.effectiveMaxMp;
+  const mpPct=p.mp/emp*100;
   document.getElementById('h-mp-bar').style.width=mpPct+'%';
-  document.getElementById('h-mp-text').textContent=`${p.mp}/${p.maxMp}`;
+  document.getElementById('h-mp-text').textContent=`${p.mp}/${emp}`;
 
   const xpPct=p.xp/p.xpNext*100;
   document.getElementById('h-xp-bar').style.width=xpPct+'%';
@@ -1590,9 +1750,44 @@ function updateHUD(){
 
   document.getElementById('h-atk').textContent=p.totalAtk;
   document.getElementById('h-def').textContent=p.totalDef;
-  document.getElementById('h-spd').textContent=p.spd;
-  document.getElementById('h-weapon').textContent=p.weapon?`${p.weapon.emoji} ${p.weapon.name}`:'None';
-  document.getElementById('h-armor').textContent=p.armor?`${p.armor.emoji} ${p.armor.name}`:'None';
+  document.getElementById('h-spd').textContent=p.totalSpd;
+  document.getElementById('h-maxhp').textContent=ehp;
+
+  // ── Equipment slot list ─────────────────────────────────────────
+  const slots=[
+    { label:'Weapon',  icon:'⚔️',  item:p.weapon,   statFn:i=>`DMG ${i.dmg[0]}–${i.dmg[1]}` },
+    { label:'Helmet',  icon:'🪖',  item:p.helmet,   statFn:i=>`DEF +${i.def}` },
+    { label:'Armor',   icon:'🛡️',  item:p.armor,    statFn:i=>`DEF +${i.def}` },
+    { label:'Shield',  icon:'🛡',  item:p.shield,   statFn:i=>`DEF +${i.def}` },
+    { label:'Leggings',icon:'🩲',  item:p.leggings, statFn:i=>`DEF +${i.def}` },
+    { label:'Boots',   icon:'👟',  item:p.boots,    statFn:i=>`DEF+${i.def}${i.spd?` SPD+${i.spd}`:''}` },
+    { label:'Ring I',  icon:'💍',  item:p.ring1,    statFn:ringStatStr },
+    { label:'Ring II', icon:'💍',  item:p.ring2,    statFn:ringStatStr },
+    { label:'Amulet',  icon:'📿',  item:p.amulet,   statFn:ringStatStr },
+  ];
+  const list=document.getElementById('equip-list');
+  list.innerHTML='';
+  slots.forEach(s=>{
+    const row=document.createElement('div');
+    row.className='equip-row'+(s.item?'':' empty');
+    row.innerHTML=`<div class="equip-icon">${s.item?s.item.emoji:s.icon}</div>`+
+      `<div class="equip-body">`+
+        `<div class="equip-slot-label">${s.label}</div>`+
+        `<div class="equip-item-name">${s.item?s.item.name:'—'}</div>`+
+      `</div>`+
+      (s.item?`<div class="equip-item-stat">${s.statFn(s.item)}</div>`:'');
+    list.appendChild(row);
+  });
+}
+
+function ringStatStr(item){
+  const parts=[];
+  if(item.atkBonus) parts.push(`ATK+${item.atkBonus}`);
+  if(item.defBonus) parts.push(`DEF+${item.defBonus}`);
+  if(item.hpBonus)  parts.push(`HP+${item.hpBonus}`);
+  if(item.mpBonus)  parts.push(`MP+${item.mpBonus}`);
+  if(item.spdBonus) parts.push(`SPD+${item.spdBonus}`);
+  return parts.join(' ');
 }
 
 // ── TARGETING SYSTEM ─────────────────────────────────────────────
@@ -1750,8 +1945,8 @@ document.addEventListener('keydown', e=>{
         const hRestore=Math.ceil(G.player.level/2);
         const isCaster=G.player.cls.id==='mage'||G.player.cls.id==='cleric';
         const mRestore=isCaster?1:0;
-        G.player.hp=Math.min(G.player.maxHp, G.player.hp+hRestore);
-        if(mRestore) G.player.mp=Math.min(G.player.maxMp, G.player.mp+mRestore);
+        G.player.hp=Math.min(G.player.effectiveMaxHp, G.player.hp+hRestore);
+        if(mRestore) G.player.mp=Math.min(G.player.effectiveMaxMp, G.player.mp+mRestore);
         const mpMsg=mRestore?`, ${mRestore} MP`:'';
         log(`You rest. Recovered ${hRestore} HP${mpMsg}.`);
         endTurn(); updateHUD();
