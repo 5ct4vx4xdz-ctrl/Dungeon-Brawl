@@ -165,27 +165,58 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
 .inv-panel{
   background:linear-gradient(160deg,#0f0c16,#0a0812);
   border:1px solid #2a2030;border-radius:12px;
-  padding:24px;min-width:340px;max-width:480px;width:90vw;
+  padding:20px 22px;width:min(520px,94vw);
   box-shadow:0 20px 60px rgba(0,0,0,0.8),0 0 40px rgba(201,162,39,0.05);
+  max-height:90vh;display:flex;flex-direction:column;
 }
-.inv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-.inv-title{font-size:1.1rem;color:#c9a227;letter-spacing:3px;text-transform:uppercase;}
+.inv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.inv-title{font-size:1.05rem;color:#c9a227;letter-spacing:3px;text-transform:uppercase;}
 .inv-close{background:none;border:1px solid #2a2030;border-radius:4px;color:#5a5040;padding:4px 10px;cursor:pointer;font-family:'Georgia',serif;font-size:0.75rem;}
 .inv-close:hover{border-color:#c9a227;color:#c9a227;}
-.inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+
+/* Equipped banner */
+.inv-equipped-bar{
+  display:flex;gap:8px;padding:8px 10px;margin-bottom:10px;
+  background:#0a0812;border:1px solid #1e1a28;border-radius:7px;flex-wrap:wrap;
+}
+.inv-equipped-label{font-size:0.6rem;color:#4a4038;text-transform:uppercase;letter-spacing:1px;width:100%;margin-bottom:2px;}
+.inv-equipped-item{
+  display:flex;align-items:center;gap:5px;
+  background:#12101a;border:1px solid #2a2030;border-radius:5px;
+  padding:3px 8px;font-size:0.7rem;color:#9a8060;
+}
+.inv-equipped-item span{color:#c9a227;}
+
+/* Slot list */
+.inv-list{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;padding-right:2px;}
+.inv-list::-webkit-scrollbar{width:4px;}
+.inv-list::-webkit-scrollbar-thumb{background:#2a2030;border-radius:2px;}
 .inv-slot{
   background:#0d0b14;border:1px solid #1e1a28;border-radius:7px;
-  padding:10px;cursor:pointer;transition:border-color 0.15s,background 0.15s;
-  min-height:56px;display:flex;align-items:center;gap:10px;
+  padding:8px 10px;cursor:pointer;transition:border-color 0.15s,background 0.15s;
+  display:flex;align-items:center;gap:10px;
 }
 .inv-slot:hover{border-color:#c9a227;background:#14101c;}
-.inv-slot.empty{cursor:default;opacity:0.4;}
+.inv-slot.empty{cursor:default;opacity:0.35;}
 .inv-slot.empty:hover{border-color:#1e1a28;background:#0d0b14;}
-.inv-emoji{font-size:1.5rem;flex-shrink:0;}
-.inv-info{display:flex;flex-direction:column;gap:1px;min-width:0;}
-.inv-name{font-size:0.75rem;color:#a09070;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.inv-type{font-size:0.6rem;color:#4a4038;text-transform:uppercase;letter-spacing:1px;}
-.inv-hint{font-size:0.62rem;color:#3a3028;margin-top:12px;text-align:center;}
+.inv-emoji{font-size:1.4rem;flex-shrink:0;line-height:1;}
+.inv-info{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.inv-name{font-size:0.76rem;color:#a09070;}
+.inv-meta{display:flex;align-items:center;gap:8px;}
+.inv-stat{font-size:0.63rem;color:#5a5040;}
+.inv-comp{font-size:0.65rem;font-weight:bold;padding:1px 5px;border-radius:3px;}
+.inv-comp.better{color:#27ae60;background:rgba(39,174,96,0.1);}
+.inv-comp.worse {color:#e74c3c;background:rgba(231,76,60,0.1);}
+.inv-comp.same  {color:#7a7060;}
+.inv-slot-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:6px;}
+.inv-sell-btn{
+  background:#0f0a06;border:1px solid #3a2a10;border-radius:4px;
+  color:#c9a227;font-size:0.62rem;padding:3px 7px;cursor:pointer;
+  font-family:'Georgia',serif;white-space:nowrap;transition:background 0.12s,border-color 0.12s;
+}
+.inv-sell-btn:hover{background:#1e1408;border-color:#c9a227;}
+.inv-key-badge{font-size:0.58rem;color:#3a3028;text-align:right;}
+.inv-hint{font-size:0.6rem;color:#3a3028;margin-top:10px;text-align:center;padding-top:8px;border-top:1px solid #1a1620;flex-shrink:0;}
 
 /* ── GAME OVER ── */
 #game-over{
@@ -350,11 +381,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
   <div id="inventory">
     <div class="inv-panel fade-in">
       <div class="inv-header">
-        <div class="inv-title">Inventory</div>
+        <div class="inv-title">⚔ Inventory</div>
         <button class="inv-close" id="inv-close-btn">[I] Close</button>
       </div>
-      <div class="inv-grid" id="inv-grid"></div>
-      <div class="inv-hint">Left-click: Use/Equip &nbsp;·&nbsp; Right-click: Drop &nbsp;·&nbsp; Keys 1–0: Quick use</div>
+      <div class="inv-equipped-bar" id="inv-equipped-bar">
+        <div class="inv-equipped-label">Equipped</div>
+      </div>
+      <div class="inv-list" id="inv-grid"></div>
+      <div class="inv-hint">Click: Equip/Use &nbsp;·&nbsp; 💰: Sell &nbsp;·&nbsp; Right-click: Drop &nbsp;·&nbsp; Keys 1–0: Quick use</div>
     </div>
   </div>
 </div>
@@ -1413,24 +1447,107 @@ function dropItem(idx){
   updateHUD(); renderInventory();
 }
 
+// ── SELL & COMPARISON HELPERS ─────────────────────────────────────
+
+function itemSellPrice(item){
+  if(item.kind==='consumable') return 10;
+  const tier=[15,40,100,250];
+  return tier[clamp(item.rarity||0,0,3)];
+}
+
+function itemComparison(item){
+  const p=G.player;
+  if(item.kind==='weapon'&&p.weapon){
+    const curAvg=(p.weapon.dmg[0]+p.weapon.dmg[1])/2;
+    const newAvg=(item.dmg[0]+item.dmg[1])/2;
+    const diff=Math.round(newAvg-curAvg);
+    if(diff>0) return {text:`+${diff} dmg avg`,cls:'better',arrow:'↑'};
+    if(diff<0) return {text:`${diff} dmg avg`,cls:'worse', arrow:'↓'};
+    return {text:'same dmg',cls:'same',arrow:'='};
+  }
+  if(item.kind==='armor'&&p.armor){
+    const diff=item.def-p.armor.def;
+    if(diff>0) return {text:`+${diff} DEF`,cls:'better',arrow:'↑'};
+    if(diff<0) return {text:`${diff} DEF`,cls:'worse', arrow:'↓'};
+    return {text:'same DEF',cls:'same',arrow:'='};
+  }
+  return null;
+}
+
+function sellItem(idx){
+  const item=G.player.inventory[idx];
+  if(!item) return;
+  const price=itemSellPrice(item);
+  G.player.gold+=price;
+  G.player.inventory.splice(idx,1);
+  spawnParticles(G.player.x,G.player.y,'#c9a227',6,40,3,0.04);
+  log(`Sold ${item.name} for ${price} gold.`,'loot');
+  updateHUD(); renderInventory();
+}
+
 function renderInventory(){
+  const p=G.player;
+
+  // ── Equipped banner ───────────────────────────────────────────
+  const bar=document.getElementById('inv-equipped-bar');
+  bar.innerHTML='<div class="inv-equipped-label">Currently Equipped</div>';
+  const wSlot=document.createElement('div');
+  wSlot.className='inv-equipped-item';
+  wSlot.innerHTML=`${p.weapon?.emoji||'✊'} <span>${p.weapon?.name||'Fists'}</span> DMG ${p.weapon?.dmg[0]||1}–${p.weapon?.dmg[1]||2}`;
+  const aSlot=document.createElement('div');
+  aSlot.className='inv-equipped-item';
+  aSlot.innerHTML=`${p.armor?.emoji||'—'} <span>${p.armor?.name||'None'}</span> DEF +${p.armor?.def||0}`;
+  bar.appendChild(wSlot); bar.appendChild(aSlot);
+
+  // ── Slot list ─────────────────────────────────────────────────
   const grid=document.getElementById('inv-grid');
   grid.innerHTML='';
   for(let i=0;i<10;i++){
     const slot=document.createElement('div');
-    const item=G.player.inventory[i];
+    const item=p.inventory[i];
+    const keyLabel=i<9?i+1:0;
+
     if(item){
       slot.className='inv-slot';
-      const typeLabel=item.kind==='consumable'?'Consumable':item.kind==='weapon'?`Weapon (${item.type||'melee'})`:item.kind==='armor'?'Armor':'Item';
-      const detail=item.kind==='weapon'?` [${item.dmg[0]}-${item.dmg[1]} dmg]`:item.kind==='armor'?` [+${item.def} def]`:'';
-      slot.innerHTML=`<div class="inv-emoji">${item.emoji}</div><div class="inv-info"><div class="inv-name">${item.name}${detail}</div><div class="inv-type">${typeLabel}</div></div>`;
-      slot.title=`${item.name} — ${typeLabel}\nLeft-click: Use/Equip\nRight-click: Drop`;
-      slot.onclick=()=>useInventoryItem(i);
-      slot.oncontextmenu=ev=>{ ev.preventDefault(); dropItem(i); };
+
+      // Stat line
+      let statText='';
+      if(item.kind==='weapon') statText=`${item.type||'melee'} · DMG ${item.dmg[0]}–${item.dmg[1]}`;
+      else if(item.kind==='armor') statText=`armor · DEF +${item.def}`;
+      else statText='consumable';
+
+      // Comparison badge
+      const comp=itemComparison(item);
+      const compHTML=comp
+        ?`<span class="inv-comp ${comp.cls}">${comp.arrow} ${comp.text}</span>`
+        :'';
+
+      const price=itemSellPrice(item);
+
+      slot.innerHTML=`
+        <div class="inv-emoji">${item.emoji}</div>
+        <div class="inv-info">
+          <div class="inv-name">${item.name}</div>
+          <div class="inv-meta">
+            <span class="inv-stat">${statText}</span>
+            ${compHTML}
+          </div>
+        </div>
+        <div class="inv-slot-right">
+          <button class="inv-sell-btn">💰 ${price}g</button>
+          <div class="inv-key-badge">[${keyLabel}]</div>
+        </div>`;
+
+      slot.querySelector('.inv-sell-btn').addEventListener('click',ev=>{
+        ev.stopPropagation(); sellItem(i);
+      });
+      slot.addEventListener('click',()=>useInventoryItem(i));
+      slot.addEventListener('contextmenu',ev=>{ ev.preventDefault(); dropItem(i); });
     } else {
       slot.className='inv-slot empty';
-      const keyLabel=i<9?i+1:i===9?0:'';
-      slot.innerHTML=`<div class="inv-emoji" style="font-size:0.9rem;color:#2a2030">${keyLabel}</div><div class="inv-info"><div class="inv-name" style="color:#2a2030">Empty slot</div></div>`;
+      slot.innerHTML=`
+        <div class="inv-emoji" style="font-size:0.9rem;color:#1e1a28">${keyLabel}</div>
+        <div class="inv-info"><div class="inv-name" style="color:#1e1a28">Empty</div></div>`;
     }
     grid.appendChild(slot);
   }
