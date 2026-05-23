@@ -620,6 +620,16 @@ const dist = (ax, ay, bx, by) => Math.abs(ax - bx) + Math.abs(ay - by);
 const ROSTER_KEY = 'dungeon-brawl-roster';
 const MAX_CHARS = 6;
 
+// ── KILL REGEN SCALING ───────────────────────────────────────────
+// Returns HP or MP to restore on kill, scaled to the enemy's XP value.
+// Warrior/Mage: divisor 2 (more regen). Rogue/Cleric: divisor 3 (less).
+// Examples with divisor 2 — Rat(6xp):2, Goblin(12xp):2, Orc(38xp):4,
+//   Dark Knight(65xp):5, Dragon(250xp):8, Boss-5(500xp):12
+function killRegen(enemyXp, cls){
+  const divisor = (cls==='warrior'||cls==='mage') ? 2 : 3;
+  return Math.max(1, Math.ceil(Math.sqrt(enemyXp) / divisor));
+}
+
 function getRoster(){
   try{ return JSON.parse(localStorage.getItem(ROSTER_KEY)||'[]'); }catch(e){ return []; }
 }
@@ -1904,19 +1914,19 @@ function attackEnemy(enemy){
     const leveled=G.player.gainXP(enemy.xp);
     G.player.gold+=enemy.goldDrop;
     spawnParticles(enemy.x,enemy.y,'#c9a227',14,60,4,0.06);
-    // Class kill bonuses
+    // Class kill bonuses (scaled to enemy XP)
     const clsId=G.player.cls.id;
     if(clsId==='mage'||clsId==='cleric'){
-      const mpGain=clsId==='mage'?3:2;
-      const actual=Math.min(mpGain, G.player.effectiveMaxMp-G.player.mp);
+      const gain=killRegen(enemy.xp,clsId);
+      const actual=Math.min(gain, G.player.effectiveMaxMp-G.player.mp);
       if(actual>0){
         G.player.mp+=actual;
         spawnParticles(enemy.x,enemy.y,'#2980b9',5,30,2,0.04);
         spawnDmgNum(enemy.x,enemy.y,`+${actual}MP`,'#5dade2');
       }
     } else if(clsId==='warrior'||clsId==='rogue'){
-      const hpGain=clsId==='warrior'?3:2;
-      const actual=Math.min(hpGain, G.player.effectiveMaxHp-G.player.hp);
+      const gain=killRegen(enemy.xp,clsId);
+      const actual=Math.min(gain, G.player.effectiveMaxHp-G.player.hp);
       if(actual>0){
         G.player.hp+=actual;
         spawnParticles(enemy.x,enemy.y,'#27ae60',5,30,2,0.04);
@@ -2235,15 +2245,13 @@ function endTurn(){
       const leveled=G.player.gainXP(e.xp); G.player.gold+=e.goldDrop;
       log(`${e.name} perished from status effects!`,'loot');
       SFX.play('death');
-      // Class kill bonuses (status kills)
+      // Class kill bonuses (status kills, scaled to enemy XP)
       const clsId2=G.player.cls.id;
       if(clsId2==='mage'||clsId2==='cleric'){
-        const mpGain2=clsId2==='mage'?3:2;
-        const actual2=Math.min(mpGain2, G.player.effectiveMaxMp-G.player.mp);
+        const actual2=Math.min(killRegen(e.xp,clsId2), G.player.effectiveMaxMp-G.player.mp);
         if(actual2>0){ G.player.mp+=actual2; spawnDmgNum(e.x,e.y,`+${actual2}MP`,'#5dade2'); }
       } else if(clsId2==='warrior'||clsId2==='rogue'){
-        const hpGain2=clsId2==='warrior'?3:2;
-        const actual2=Math.min(hpGain2, G.player.effectiveMaxHp-G.player.hp);
+        const actual2=Math.min(killRegen(e.xp,clsId2), G.player.effectiveMaxHp-G.player.hp);
         if(actual2>0){ G.player.hp+=actual2; spawnDmgNum(e.x,e.y,`+${actual2}HP`,'#2ecc71'); }
       }
       if(leveled){ log(`★ LEVEL UP! You are now level ${G.player.level}! ★`,'level'); SFX.play('levelup'); showLevelUpModal(); }
@@ -2677,18 +2685,16 @@ function fireAtTarget(){
     }
     const leveled=p.gainXP(target.xp); p.gold+=target.goldDrop;
     spawnParticles(target.x,target.y,'#c9a227',14,60,4,0.06);
-    // Class kill bonuses
+    // Class kill bonuses (scaled to enemy XP)
     if(cls==='mage'||cls==='cleric'){
-      const mpGain=cls==='mage'?3:2;
-      const mpActual=Math.min(mpGain, p.effectiveMaxMp-p.mp);
+      const mpActual=Math.min(killRegen(target.xp,cls), p.effectiveMaxMp-p.mp);
       if(mpActual>0){
         p.mp+=mpActual;
         spawnParticles(target.x,target.y,'#2980b9',5,30,2,0.04);
         spawnDmgNum(target.x,target.y,`+${mpActual}MP`,'#5dade2');
       }
     } else if(cls==='warrior'||cls==='rogue'){
-      const hpGain=cls==='warrior'?3:2;
-      const hpActual=Math.min(hpGain, p.effectiveMaxHp-p.hp);
+      const hpActual=Math.min(killRegen(target.xp,cls), p.effectiveMaxHp-p.hp);
       if(hpActual>0){
         p.hp+=hpActual;
         spawnParticles(target.x,target.y,'#27ae60',5,30,2,0.04);
