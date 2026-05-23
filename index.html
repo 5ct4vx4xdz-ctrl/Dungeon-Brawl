@@ -1606,14 +1606,37 @@ function drawMerchant(e){
   const {sx,sy}=w2s(e.x,e.y);
   const cx=sx+TS/2, cy=sy+TS/2;
   ctx.save();
-  // Gold glow
   const t=Date.now()/800;
-  const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,TS*0.55);
-  grd.addColorStop(0,`rgba(201,162,39,${0.15+Math.sin(t)*0.07})`);
+  const pulse=Math.sin(t)*0.5+0.5; // 0→1 oscillation
+
+  // Outer glow
+  const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,TS*0.7);
+  grd.addColorStop(0,`rgba(201,162,39,${0.25+pulse*0.15})`);
   grd.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,TS*0.55,0,Math.PI*2); ctx.fill();
-  ctx.font=`${TS*0.52}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('🧑‍💼',cx,cy+1);
+  ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,TS*0.7,0,Math.PI*2); ctx.fill();
+
+  // Solid background circle
+  const r=TS*0.34;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle='#1a1408'; ctx.fill();
+  ctx.strokeStyle=`rgba(201,162,39,${0.7+pulse*0.3})`; ctx.lineWidth=2.5; ctx.stroke();
+
+  // Dollar sign
+  ctx.font=`bold ${Math.round(TS*0.38)}px Georgia,serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle=`rgb(${Math.round(201+pulse*20)},${Math.round(162+pulse*20)},39)`;
+  ctx.fillText('$',cx,cy+1);
+
+  // Floating "SHOP" label above
+  const labelY=sy+TS*0.08;
+  ctx.font=`bold ${Math.round(TS*0.18)}px Georgia,serif`;
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  const lw=ctx.measureText('SHOP').width;
+  ctx.fillStyle='rgba(0,0,0,0.72)';
+  ctx.fillRect(cx-lw/2-4, labelY-14, lw+8, 14);
+  ctx.fillStyle=`rgba(255,215,80,${0.85+pulse*0.15})`;
+  ctx.fillText('SHOP', cx, labelY);
+
   ctx.restore();
 }
 
