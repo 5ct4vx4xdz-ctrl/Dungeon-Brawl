@@ -2665,6 +2665,16 @@ function fireAtTarget(){
     }
     const leveled=p.gainXP(target.xp); p.gold+=target.goldDrop;
     spawnParticles(target.x,target.y,'#c9a227',14,60,4,0.06);
+    // Mage / Cleric: regain mana on kill
+    if(cls==='mage'||cls==='cleric'){
+      const mpGain=cls==='mage'?3:2;
+      const mpActual=Math.min(mpGain, p.effectiveMaxMp-p.mp);
+      if(mpActual>0){
+        p.mp+=mpActual;
+        spawnParticles(target.x,target.y,'#2980b9',5,30,2,0.04);
+        spawnDmgNum(target.x,target.y,`+${mpActual}MP`,'#5dade2');
+      }
+    }
     log(`${target.name} slain! +${target.xp} XP, +${target.goldDrop} gold.`,'loot');
     SFX.play('death');
     if(leveled){ log(`★ LEVEL UP! You are now level ${p.level}! ★`,'level'); spawnParticles(p.x,p.y,'#4fc3f7',20,80,5,0.03); SFX.play('levelup'); showLevelUpModal(); }
