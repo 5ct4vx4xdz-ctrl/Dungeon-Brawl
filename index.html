@@ -1904,6 +1904,17 @@ function attackEnemy(enemy){
     const leveled=G.player.gainXP(enemy.xp);
     G.player.gold+=enemy.goldDrop;
     spawnParticles(enemy.x,enemy.y,'#c9a227',14,60,4,0.06);
+    // Mage / Cleric: regain mana on kill
+    const clsId=G.player.cls.id;
+    if(clsId==='mage'||clsId==='cleric'){
+      const mpGain=clsId==='mage'?3:2;
+      const actual=Math.min(mpGain, G.player.effectiveMaxMp-G.player.mp);
+      if(actual>0){
+        G.player.mp+=actual;
+        spawnParticles(enemy.x,enemy.y,'#2980b9',5,30,2,0.04);
+        spawnDmgNum(enemy.x,enemy.y,`+${actual}MP`,'#5dade2');
+      }
+    }
     log(`${enemy.name} slain! +${enemy.xp} XP, +${enemy.goldDrop} gold.`,'loot');
     SFX.play('death');
     if(leveled){
@@ -2216,6 +2227,13 @@ function endTurn(){
       const leveled=G.player.gainXP(e.xp); G.player.gold+=e.goldDrop;
       log(`${e.name} perished from status effects!`,'loot');
       SFX.play('death');
+      // Mage / Cleric: regain mana on kill (status kills too)
+      const clsId2=G.player.cls.id;
+      if(clsId2==='mage'||clsId2==='cleric'){
+        const mpGain2=clsId2==='mage'?3:2;
+        const actual2=Math.min(mpGain2, G.player.effectiveMaxMp-G.player.mp);
+        if(actual2>0){ G.player.mp+=actual2; spawnDmgNum(e.x,e.y,`+${actual2}MP`,'#5dade2'); }
+      }
       if(leveled){ log(`★ LEVEL UP! You are now level ${G.player.level}! ★`,'level'); SFX.play('levelup'); showLevelUpModal(); }
     }
   });
