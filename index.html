@@ -1130,7 +1130,7 @@ function populateDungeon(dg, floor) {
       if(it) stock.push(it);
       if(stock.length>=5) break;
     }
-    entities.push({kind:'merchant',id:uid(),x:mPos.x,y:mPos.y,stock,_merchantRoomIdx:mRoomIdx});
+    entities.push({kind:'merchant',id:uid(),x:mPos.x,y:mPos.y,stock,alive:true,_merchantRoomIdx:mRoomIdx});
   }
 
   const isBossFloor=floor%5===0;
