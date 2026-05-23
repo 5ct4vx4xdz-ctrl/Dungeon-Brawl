@@ -287,6 +287,71 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
   border:1px solid #2a4028;border-radius:4px;padding:3px 10px;
   display:none;
 }
+
+/* ── SHOP ── */
+#shop{
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.78);backdrop-filter:blur(3px);
+}
+.shop-panel{
+  background:linear-gradient(160deg,#0f0c16,#0a0812);
+  border:1px solid #c9a22744;border-radius:12px;
+  padding:20px 22px;width:min(500px,94vw);
+  box-shadow:0 20px 60px rgba(0,0,0,0.8),0 0 40px rgba(201,162,39,0.1);
+  max-height:90vh;display:flex;flex-direction:column;
+}
+.shop-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.shop-title{font-size:1.05rem;color:#c9a227;letter-spacing:3px;text-transform:uppercase;}
+.shop-close{background:none;border:1px solid #2a2030;border-radius:4px;color:#5a5040;padding:4px 10px;cursor:pointer;font-family:'Georgia',serif;font-size:0.75rem;}
+.shop-close:hover{border-color:#c9a227;color:#c9a227;}
+.shop-gold{font-size:0.8rem;color:#c9a227;margin-bottom:8px;}
+.shop-list{display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;}
+.shop-item{
+  background:#0d0b14;border:1px solid #1e1a28;border-radius:7px;
+  padding:8px 10px;display:flex;align-items:center;gap:10px;
+}
+.shop-item-emoji{font-size:1.4rem;flex-shrink:0;}
+.shop-item-info{flex:1;min-width:0;}
+.shop-item-name{font-size:0.76rem;color:#a09070;}
+.shop-item-stat{font-size:0.62rem;color:#5a5040;}
+.shop-buy-btn{
+  background:#1c1408;border:1px solid #c9a22766;border-radius:4px;
+  color:#c9a227;font-size:0.68rem;padding:5px 10px;cursor:pointer;
+  font-family:'Georgia',serif;white-space:nowrap;
+}
+.shop-buy-btn:hover{background:#2c2010;border-color:#c9a227;}
+
+/* ── STATUS PILLS ── */
+.status-pill{
+  font-size:0.62rem;padding:2px 7px;border-radius:20px;
+  background:#0f0d14;border:1px solid #2a2030;
+  display:inline-flex;align-items:center;gap:3px;
+}
+
+/* ── LEVEL-UP MODAL ── */
+#levelup-modal{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,0.88);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;
+}
+#levelup-modal.open{display:flex;}
+.lu-box{
+  background:linear-gradient(160deg,#181208,#100e06);
+  border:2px solid #c9a227;border-radius:14px;
+  padding:24px 32px;text-align:center;
+  box-shadow:0 0 60px rgba(201,162,39,0.3),0 20px 60px rgba(0,0,0,0.8);
+}
+.lu-card{
+  background:linear-gradient(160deg,#141020,#0e0c18);
+  border:1px solid #3a3028;border-radius:10px;
+  padding:18px 20px;cursor:pointer;text-align:center;width:160px;
+  transition:border-color 0.15s,transform 0.15s,box-shadow 0.15s;
+}
+.lu-card:hover{border-color:#c9a227;transform:translateY(-4px);box-shadow:0 8px 30px rgba(201,162,39,0.2);}
+.lu-icon{font-size:2rem;margin-bottom:6px;}
+.lu-name{font-size:0.85rem;color:#c9a227;letter-spacing:1px;margin-bottom:4px;}
+.lu-desc{font-size:0.72rem;color:#7a7060;line-height:1.4;}
 </style>
 </head>
 <body>
@@ -354,6 +419,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
         <div class="stat-badge"><div class="sv" id="h-spd">—</div><div>SPD</div></div>
         <div class="stat-badge"><div class="sv" id="h-maxhp">—</div><div>MaxHP</div></div>
       </div>
+      <div id="h-statuses" style="display:flex;flex-wrap:wrap;gap:3px;padding:4px 0;"></div>
       <div class="equip-list" id="equip-list"></div>
     </div>
 
@@ -394,6 +460,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0a0a12;font-family:
       <div class="inv-hint">Click: Equip/Use &nbsp;·&nbsp; 💰: Sell &nbsp;·&nbsp; Right-click: Drop &nbsp;·&nbsp; Keys 1–0: Quick use</div>
     </div>
   </div>
+
+  <div id="shop">
+    <div class="shop-panel fade-in">
+      <div class="shop-header">
+        <div class="shop-title">🧑‍💼 Merchant</div>
+        <button class="shop-close" id="shop-close-btn">[E] Close</button>
+      </div>
+      <div class="shop-gold" id="shop-gold">Your gold: 0</div>
+      <div class="shop-list" id="shop-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="levelup-modal">
+  <div class="lu-box">
+    <div style="font-size:3rem;">⭐</div>
+    <div id="lu-title" style="font-size:1.8rem;color:#c9a227;letter-spacing:4px;">LEVEL UP!</div>
+    <div id="lu-sub" style="color:#7a7060;margin-top:4px;"></div>
+    <div style="font-size:0.8rem;color:#5a5040;margin-top:8px;">Choose your advancement:</div>
+  </div>
+  <div id="lu-choices" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:600px;"></div>
 </div>
 
 <!-- ── CONFIRM DIALOG ────────────────────────────── -->
@@ -494,9 +581,153 @@ function showConfirm(title, body, onYes) {
 }
 
 // ── TILE CONSTANTS ───────────────────────────────────────────────
-const T = { WALL: 0, FLOOR: 1, DOOR: 2, STAIR_DOWN: 3, STAIR_UP: 4 };
+const T = { WALL: 0, FLOOR: 1, DOOR: 2, STAIR_DOWN: 3, STAIR_UP: 4, WATER: 5, LAVA: 6 };
 const MAP_W = 64, MAP_H = 48;
 const TS = 48; // tile size px
+
+// ── WEB AUDIO SFX ───────────────────────────────────────────────
+const SFX = {
+  _ctx: null,
+  ctx(){ if(!this._ctx) this._ctx=new(window.AudioContext||window.webkitAudioContext)(); return this._ctx; },
+  play(type){ try{ if(this[type]) this[type](); }catch(e){} },
+  hit(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sawtooth'; o.frequency.setValueAtTime(800,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200,c.currentTime+0.08);
+    g.gain.setValueAtTime(0.18,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.08);
+    o.start(c.currentTime); o.stop(c.currentTime+0.08);
+  },
+  hurt(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.setValueAtTime(120,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(60,c.currentTime+0.15);
+    g.gain.setValueAtTime(0.25,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.15);
+    o.start(c.currentTime); o.stop(c.currentTime+0.15);
+  },
+  death(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sawtooth'; o.frequency.setValueAtTime(400,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(100,c.currentTime+0.3);
+    g.gain.setValueAtTime(0.22,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.3);
+    o.start(c.currentTime); o.stop(c.currentTime+0.3);
+  },
+  gold(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.setValueAtTime(880,c.currentTime);
+    g.gain.setValueAtTime(0.15,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.08);
+    o.start(c.currentTime); o.stop(c.currentTime+0.08);
+  },
+  chest(){
+    const c=this.ctx();
+    [523,659].forEach((f,i)=>{
+      const o=c.createOscillator(), g=c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.type='sine'; o.frequency.value=f;
+      const t=c.currentTime+i*0.2;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+      o.start(t); o.stop(t+0.2);
+    });
+  },
+  levelup(){
+    const c=this.ctx();
+    [261,329,392,523].forEach((f,i)=>{
+      const o=c.createOscillator(), g=c.createGain();
+      o.connect(g); g.connect(c.destination);
+      o.type='sine'; o.frequency.value=f;
+      const t=c.currentTime+i*0.1;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.2,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+      o.start(t); o.stop(t+0.12);
+    });
+  },
+  spell(){
+    const c=this.ctx(), buf=c.createBuffer(1,c.sampleRate*0.2,c.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.3;
+    const src=c.createBufferSource(), flt=c.createBiquadFilter(), g=c.createGain();
+    src.buffer=buf; flt.type='bandpass';
+    flt.frequency.setValueAtTime(400,c.currentTime);
+    flt.frequency.exponentialRampToValueAtTime(3000,c.currentTime+0.2);
+    src.connect(flt); flt.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(0.3,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2);
+    src.start(c.currentTime); src.stop(c.currentTime+0.2);
+  },
+  step(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.value=200;
+    g.gain.setValueAtTime(0.04,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.03);
+    o.start(c.currentTime); o.stop(c.currentTime+0.03);
+  },
+  stairs(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.setValueAtTime(600,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(200,c.currentTime+0.4);
+    g.gain.setValueAtTime(0.2,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.4);
+    o.start(c.currentTime); o.stop(c.currentTime+0.4);
+  },
+  buy(){
+    const c=this.ctx(), o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type='sine'; o.frequency.value=1200;
+    g.gain.setValueAtTime(0.18,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.1);
+    o.start(c.currentTime); o.stop(c.currentTime+0.1);
+  },
+  boss(){
+    const c=this.ctx();
+    // Low rumble
+    const o1=c.createOscillator(), g1=c.createGain();
+    o1.connect(g1); g1.connect(c.destination);
+    o1.type='sawtooth'; o1.frequency.setValueAtTime(60,c.currentTime);
+    g1.gain.setValueAtTime(0.25,c.currentTime); g1.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);
+    o1.start(c.currentTime); o1.stop(c.currentTime+0.5);
+    // High dramatic tone
+    const o2=c.createOscillator(), g2=c.createGain();
+    o2.connect(g2); g2.connect(c.destination);
+    o2.type='sine'; o2.frequency.setValueAtTime(800,c.currentTime);
+    o2.frequency.exponentialRampToValueAtTime(400,c.currentTime+0.5);
+    g2.gain.setValueAtTime(0.15,c.currentTime); g2.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.5);
+    o2.start(c.currentTime); o2.stop(c.currentTime+0.5);
+  },
+};
+
+// ── BOSS DEFINITIONS ────────────────────────────────────────────
+const BOSS_DEFS = [
+  { floor:5,  name:'Orc Warchief', emoji:'👹', color:'#0a5c0a', hp:[120,150], atk:[18,25], def:7,  xp:500,  gold:[60,100]  },
+  { floor:10, name:'Bone Tyrant',  emoji:'💀', color:'#9a70ff', hp:[200,260], atk:[26,34], def:10, xp:1000, gold:[120,200] },
+  { floor:15, name:'Dragon Lord',  emoji:'🐉', color:'#8b0000', hp:[320,400], atk:[35,45], def:14, xp:2000, gold:[200,350] },
+];
+function getBossDef(floor){ return BOSS_DEFS.find(b=>b.floor===floor)||null; }
+
+// ── LEVEL-UP CHOICES ────────────────────────────────────────────
+const LEVEL_UP_CHOICES = {
+  warrior:[
+    {name:'Brute Strength', desc:'+4 ATK',           icon:'⚔️', apply:p=>{p.atk+=4;}},
+    {name:'Iron Vitality',  desc:'+10 Max HP, +5 HP', icon:'❤️', apply:p=>{p.maxHp+=10;p.hp=Math.min(p.hp+5,p.effectiveMaxHp);}},
+    {name:'Battle Hardened',desc:'+3 DEF',            icon:'🛡️', apply:p=>{p.def+=3;}},
+  ],
+  rogue:[
+    {name:'Swift Strike',   desc:'+3 ATK, +1 SPD',   icon:'🗡️', apply:p=>{p.atk+=3;p.spd+=1;}},
+    {name:'Evasion',        desc:'+2 SPD, +3 DEF',   icon:'💨', apply:p=>{p.spd+=2;p.def+=3;}},
+    {name:"Thief's Eye",   desc:'+5 ATK',            icon:'👁️', apply:p=>{p.atk+=5;}},
+  ],
+  mage:[
+    {name:'Arcane Surge',   desc:'+5 ATK, +4 MP',    icon:'🔮', apply:p=>{p.atk+=5;p.maxMp+=4;}},
+    {name:'Mystic Reserves',desc:'+12 Max MP',        icon:'💠', apply:p=>{p.maxMp+=12;}},
+    {name:'Arcane Body',    desc:'+6 HP, +2 DEF',    icon:'🌀', apply:p=>{p.maxHp+=6;p.def+=2;}},
+  ],
+  cleric:[
+    {name:'Divine Might',   desc:'+4 ATK, +6 MP',    icon:'✝️', apply:p=>{p.atk+=4;p.maxMp+=6;}},
+    {name:'Sacred Healing', desc:'+10 HP, +5 MP',     icon:'💛', apply:p=>{p.maxHp+=10;p.maxMp+=5;}},
+    {name:'Holy Ward',      desc:'+4 DEF',            icon:'🔰', apply:p=>{p.def+=4;}},
+  ],
+};
 
 // ── D&D DATA TABLES ──────────────────────────────────────────────
 
@@ -714,7 +945,49 @@ function generateDungeon(floor) {
   // Stair up at first room center (floor > 1)
   if(floor>1) map[rooms[0].cy()][rooms[0].cx()]=T.STAIR_UP;
 
-  return { map, rooms, start:{x:rooms[0].cx(), y:rooms[0].cy()} };
+  // ── Torches: 2–3 per room, wall-adjacent floor tiles ──────────
+  const torches=[];
+  rooms.forEach(room=>{
+    const count=rng(2,3);
+    let placed=0;
+    for(let attempt=0;attempt<60&&placed<count;attempt++){
+      const tx=rng(room.innerX(),room.innerX()+room.innerW()-1);
+      const ty=rng(room.innerY(),room.innerY()+room.innerH()-1);
+      if(map[ty][tx]!==T.FLOOR) continue;
+      // Check if adjacent to wall
+      const adjWall=[[0,-1],[0,1],[-1,0],[1,0]].some(([dx,dy])=>{
+        const nx=tx+dx,ny=ty+dy;
+        return nx>=0&&nx<MAP_W&&ny>=0&&ny<MAP_H&&map[ny][nx]===T.WALL;
+      });
+      if(!adjWall) continue;
+      if(torches.some(t=>t.x===tx&&t.y===ty)) continue;
+      torches.push({x:tx,y:ty}); placed++;
+    }
+  });
+
+  // ── Water & Lava in corridors ─────────────────────────────────
+  // Find corridor tiles (floor tiles not inside any room)
+  for(let y=0;y<MAP_H;y++){
+    for(let x=0;x<MAP_W;x++){
+      if(map[y][x]!==T.FLOOR) continue;
+      const inRoom=rooms.some(r=>x>=r.innerX()&&x<r.innerX()+r.innerW()&&y>=r.innerY()&&y<r.innerY()+r.innerH());
+      if(inRoom) continue;
+      if(floor>=6&&Math.random()<0.08) map[y][x]=T.LAVA;
+      else if(floor>=3&&Math.random()<0.10) map[y][x]=T.WATER;
+    }
+  }
+  // Sprinkle a few in room interiors (less dense)
+  rooms.slice(1).forEach(room=>{
+    for(let ry=room.innerY();ry<room.innerY()+room.innerH();ry++){
+      for(let rx=room.innerX();rx<room.innerX()+room.innerW();rx++){
+        if(map[ry][rx]!==T.FLOOR) continue;
+        if(floor>=6&&Math.random()<0.04) map[ry][rx]=T.LAVA;
+        else if(floor>=3&&Math.random()<0.05) map[ry][rx]=T.WATER;
+      }
+    }
+  });
+
+  return { map, rooms, start:{x:rooms[0].cx(), y:rooms[0].cy()}, torches };
 }
 
 function carveLine(map, x1,y1, x2,y2){
@@ -737,8 +1010,51 @@ function populateDungeon(dg, floor) {
   const deepEnemies = validEnemyTypes.filter(e=>e.depth>=floor-1);
   const allEnemies = deepEnemies.length>0 ? deepEnemies : validEnemyTypes;
 
+  // ── Merchant in a non-start, non-last room ───────────────────
+  if(rooms.length>=3){
+    const mRoomIdx=rng(1,rooms.length-2);
+    const mRoom=rooms[mRoomIdx];
+    const mPos=mRoom.randomFloor(map);
+    const stock=[];
+    for(let s=0;s<7;s++){
+      const it=makeFloorItem(floor);
+      if(it) stock.push(it);
+      if(stock.length>=5) break;
+    }
+    entities.push({kind:'merchant',id:uid(),x:mPos.x,y:mPos.y,stock,_merchantRoomIdx:mRoomIdx});
+  }
+
+  const isBossFloor=floor%5===0;
+  const bossDef=isBossFloor?getBossDef(floor):null;
+
   for(let i=1; i<rooms.length; i++){
     const room=rooms[i];
+    const isLastRoom=i===rooms.length-1;
+
+    // ── Boss floor: spawn boss in last room ───────────────────
+    if(isLastRoom&&isBossFloor&&bossDef){
+      const bx=room.cx(), by=room.cy();
+      const boss={
+        kind:'enemy', id:uid(),
+        eid:'boss', name:bossDef.name, emoji:bossDef.emoji, color:bossDef.color,
+        x:bx, y:by,
+        maxHp:rng(bossDef.hp[0],bossDef.hp[1]),
+        get hp(){ return this._hp; },
+        set hp(v){ this._hp=v; },
+        _hp:0,
+        atk:[bossDef.atk[0],bossDef.atk[1]],
+        def:bossDef.def,
+        xp:bossDef.xp,
+        goldDrop:rng(bossDef.gold[0],bossDef.gold[1]),
+        alive:true, stunned:false,
+        isBoss:true,
+        statuses:{},
+        _bossLootFloor:floor,
+      };
+      entities.push(boss);
+      continue;
+    }
+
     // Enemies (more as floors deepen)
     const numE = rng(1, Math.min(4, 1+Math.floor(floor/2)));
     for(let e=0;e<numE;e++){
@@ -779,7 +1095,8 @@ function makeEnemy(type, x, y, floor){
     atk:[type.atk[0]+Math.max(0,bonus), type.atk[1]+Math.max(0,bonus)],
     def:type.def,
     xp:type.xp, goldDrop:rng(type.gold[0], type.gold[1]),
-    alive:true, stunned:false,
+    alive:true, stunned:false, skipTurn:false,
+    statuses:{},
   };
 }
 // fix hp init
@@ -884,6 +1201,8 @@ class Player {
     this.amulet  = null;
     this.inventory=[];
     this.alive=true;
+    this.statuses={};
+    this.skipTurn=false;
   }
 
   // HP/MP clamped to effective max (base + accessory bonuses)
@@ -898,13 +1217,15 @@ class Player {
     const w=this.weapon;
     const wDmg=w?Math.floor((w.dmg[0]+w.dmg[1])/2):1;
     return this.atk+wDmg+this.atkBonus
-      +(this.ring1?.atkBonus||0)+(this.ring2?.atkBonus||0)+(this.amulet?.atkBonus||0);
+      +(this.ring1?.atkBonus||0)+(this.ring2?.atkBonus||0)+(this.amulet?.atkBonus||0)
+      +(this.statuses?.blessed?3:0);
   }
   get totalDef(){
     return this.def
       +(this.armor?.def||0)+(this.helmet?.def||0)+(this.shield?.def||0)
       +(this.leggings?.def||0)+(this.boots?.def||0)
-      +(this.ring1?.defBonus||0)+(this.ring2?.defBonus||0)+(this.amulet?.defBonus||0);
+      +(this.ring1?.defBonus||0)+(this.ring2?.defBonus||0)+(this.amulet?.defBonus||0)
+      -(this.statuses?.cursed?2:0);
   }
   get totalSpd(){
     return this.spd+(this.boots?.spd||0)+(this.ring1?.spdBonus||0)+(this.ring2?.spdBonus||0);
@@ -924,7 +1245,7 @@ class Player {
       this.xpNext=Math.floor(this.xpNext*1.65);
       this.maxHp+=5; this.hp=this.hp+8; // heals on level up
       this.maxMp+=2; this.mp=this.mp+4;
-      this.atk+=1; this.def+=1;
+      // Additional stat choice handled by showLevelUpModal
       return true;
     }
     return false;
@@ -945,6 +1266,7 @@ function computeVis(map, px, py, radius=8){
       if(tx<0||tx>=MAP_W||ty<0||ty>=MAP_H) break;
       vis[ty][tx]=2;
       if(map[ty][tx]===T.WALL) break;
+      // Water and lava are walkable, don't block vision
       rx+=cos; ry+=sin;
     }
   }
@@ -1068,6 +1390,34 @@ function drawTile(tx, ty, tileType, dimness=0){
       ctx.fillText('▲',sx+TS/2,sy+TS/2+1);
       break;
     }
+    case T.WATER:{
+      const wt=Date.now()/600;
+      const wSin=Math.sin(wt+tx*0.7+ty*0.9);
+      const b=Math.floor(80+wSin*20);
+      const g2=Math.floor(28+wSin*12);
+      ctx.fillStyle=`rgb(8,${g2},${b})`; ctx.fillRect(sx,sy,TS,TS);
+      // Shimmer
+      ctx.globalAlpha=0.18+Math.abs(wSin)*0.12;
+      ctx.strokeStyle='#7ad4ff'; ctx.lineWidth=1;
+      const wy2=sy+TS*0.5+wSin*4;
+      ctx.beginPath(); ctx.moveTo(sx+4,wy2); ctx.lineTo(sx+TS-4,wy2); ctx.stroke();
+      ctx.globalAlpha=1;
+      break;
+    }
+    case T.LAVA:{
+      const lt=Date.now()/400;
+      const lSin=Math.sin(lt+tx*1.1+ty*0.8);
+      const lSin2=Math.sin(lt*0.7+tx*0.5);
+      const lr=Math.floor(180+lSin*40);
+      const lg=Math.floor(40+lSin2*25);
+      ctx.fillStyle=`rgb(${lr},${lg},0)`; ctx.fillRect(sx,sy,TS,TS);
+      // Glow patches
+      ctx.globalAlpha=0.3+Math.abs(lSin2)*0.2;
+      ctx.fillStyle=`rgb(255,${Math.floor(120+lSin*60)},0)`;
+      ctx.fillRect(sx+4+lSin*3,sy+6+lSin2*3,TS-8,TS-12);
+      ctx.globalAlpha=1;
+      break;
+    }
   }
   ctx.restore();
 }
@@ -1109,19 +1459,52 @@ function drawEnemy(e){
   // Shadow
   ctx.fillStyle='rgba(0,0,0,0.4)';
   ctx.beginPath(); ctx.ellipse(cx,cy+r*0.88,r*0.6,r*0.18,0,0,Math.PI*2); ctx.fill();
+  // Boss: gold glow
+  if(e.isBoss){
+    const pulse=0.5+Math.sin(Date.now()/300)*0.3;
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,r*2);
+    grd.addColorStop(0,`rgba(255,200,0,${0.3*pulse})`);
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,r*2,0,Math.PI*2); ctx.fill();
+  }
   // Body
   ctx.fillStyle=e.color;
   ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1.5; ctx.stroke();
+  if(e.isBoss){
+    ctx.strokeStyle='#c9a227'; ctx.lineWidth=3;
+  } else {
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1.5;
+  }
+  ctx.stroke();
   // Emoji
   ctx.font=`${TS*0.44}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillText(e.emoji,cx,cy+1);
+  // Boss crown above
+  if(e.isBoss){
+    ctx.font=`${TS*0.32}px serif`;
+    ctx.fillText('👑',cx,sy+6);
+  }
   // HP bar above
-  const bw=TS-6; const bh=3; const bx=sx+3, by=sy+1;
+  const bw=TS-6; const bh=e.isBoss?5:3; const bx=sx+3, by=sy+(e.isBoss?10:1);
   ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(bx,by,bw,bh);
   const hf=e.hp/e.maxHp;
   ctx.fillStyle=hf>0.5?'#27ae60':hf>0.25?'#e67e22':'#e74c3c';
   ctx.fillRect(bx,by,bw*hf,bh);
+  ctx.restore();
+}
+
+function drawMerchant(e){
+  const {sx,sy}=w2s(e.x,e.y);
+  const cx=sx+TS/2, cy=sy+TS/2;
+  ctx.save();
+  // Gold glow
+  const t=Date.now()/800;
+  const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,TS*0.55);
+  grd.addColorStop(0,`rgba(201,162,39,${0.15+Math.sin(t)*0.07})`);
+  grd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(cx,cy,TS*0.55,0,Math.PI*2); ctx.fill();
+  ctx.font=`${TS*0.52}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🧑‍💼',cx,cy+1);
   ctx.restore();
 }
 
@@ -1204,6 +1587,8 @@ function drawMinimap(){
       else if(tile===T.FLOOR)  col=v===2?'#2e2820':'#1c1a18';
       else if(tile===T.STAIR_DOWN) col='#4a90e2';
       else if(tile===T.STAIR_UP)   col='#50e87a';
+      else if(tile===T.WATER)      col='#1a5080';
+      else if(tile===T.LAVA)       col='#8b2200';
       else col='#2e2820';
       mctx.fillStyle=col;
       mctx.fillRect(Math.floor(x*sx),Math.floor(y*sy),Math.ceil(sx)+1,Math.ceil(sy)+1);
@@ -1246,6 +1631,24 @@ function render(){
   const t0=Math.floor(camX/TS)-1, t1=t0+Math.ceil(canvas.width/TS)+2;
   const u0=Math.floor(camY/TS)-1, u1=u0+Math.ceil(canvas.height/TS)+2;
 
+  // Torch glows (before tiles)
+  if(G.dg.torches){
+    G.dg.torches.forEach(t=>{
+      const v=(G.vis[t.y]||[])[t.x];
+      if(!v) return;
+      const {sx,sy}=w2s(t.x,t.y);
+      const cx=sx+TS/2, cy=sy+TS/2;
+      const flicker=0.75+Math.sin(Date.now()/180+t.x*2.7)*0.15+Math.sin(Date.now()/270+t.y*1.9)*0.1;
+      const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,TS*4.5*flicker);
+      grd.addColorStop(0,'rgba(255,140,0,0.22)');
+      grd.addColorStop(0.4,'rgba(255,80,0,0.08)');
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.save(); ctx.fillStyle=grd;
+      ctx.beginPath(); ctx.arc(cx,cy,TS*4.5*flicker,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    });
+  }
+
   // Tiles
   for(let ty=Math.max(0,u0); ty<=Math.min(MAP_H-1,u1); ty++){
     for(let tx=Math.max(0,t0); tx<=Math.min(MAP_W-1,t1); tx++){
@@ -1255,12 +1658,26 @@ function render(){
     }
   }
 
+  // Torch candle emojis (after tiles so they appear on top)
+  if(G.dg.torches){
+    G.dg.torches.forEach(t=>{
+      const v=(G.vis[t.y]||[])[t.x];
+      if(v!==2) return;
+      const {sx,sy}=w2s(t.x,t.y);
+      ctx.save();
+      ctx.font=`${TS*0.3}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('🕯',sx+TS/2,sy+TS*0.65);
+      ctx.restore();
+    });
+  }
+
   // Entities (visible only)
   G.entities.forEach(e=>{
     if(!e.alive&&e.kind!=='chest') return;
     const v=(G.vis[e.y]||[])[e.x];
     if(v!==2) return;
     if(e.kind==='enemy')      drawEnemy(e);
+    else if(e.kind==='merchant') drawMerchant(e);
     else if(e.kind==='gold')  drawGold(e);
     else if(e.kind==='chest') drawChest(e);
     else                       drawItemOnFloor(e);
@@ -1337,17 +1754,31 @@ function attackEnemy(enemy){
   spawnParticles(enemy.x,enemy.y,'#e74c3c',7,40,3,0.1);
   spawnDmgNum(enemy.x,enemy.y,`-${reduced}`,'#ff6b6b');
   log(`You hit the ${enemy.name} for ${reduced} damage!`,'damage');
+  SFX.play('hit');
 
   if(enemy.hp<=0){
     enemy.alive=false;
     G.player.kills++;
+    // Drop 3 loot items for boss
+    if(enemy.isBoss){
+      for(let li=0;li<3;li++){
+        const lootItem=makeFloorItem(enemy._bossLootFloor||G.player.floor);
+        if(lootItem){
+          lootItem.x=enemy.x+(li-1); lootItem.y=enemy.y;
+          G.entities.push(lootItem);
+        }
+      }
+    }
     const leveled=G.player.gainXP(enemy.xp);
     G.player.gold+=enemy.goldDrop;
     spawnParticles(enemy.x,enemy.y,'#c9a227',14,60,4,0.06);
     log(`${enemy.name} slain! +${enemy.xp} XP, +${enemy.goldDrop} gold.`,'loot');
+    SFX.play('death');
     if(leveled){
       log(`★ LEVEL UP! You are now level ${G.player.level}! ★`,'level');
       spawnParticles(G.player.x,G.player.y,'#4fc3f7',20,80,5,0.03);
+      SFX.play('levelup');
+      showLevelUpModal();
     }
     updateHUD(); return;
   }
@@ -1358,9 +1789,79 @@ function attackEnemy(enemy){
   spawnParticles(G.player.x,G.player.y,'#e74c3c',5,35,3,0.1);
   spawnDmgNum(G.player.x,G.player.y,`-${edm}`,'#ff4444');
   log(`${enemy.name} strikes you for ${edm} damage!`,'damage');
+  SFX.play('hurt');
+
+  // Enemy status effects on attack
+  const eid=enemy.eid;
+  if(eid==='zombie'&&Math.random()<0.3){
+    applyStatus(G.player,'poison',{turns:3,dmg:2});
+    log('The zombie infects you with poison!','damage');
+  } else if(eid==='witch'&&Math.random()<0.4){
+    applyStatus(G.player,'cursed',{turns:4});
+    log('The witch curses you!','damage');
+  } else if(eid==='troll'&&Math.random()<0.25){
+    applyStatus(G.player,'stunned',{turns:1});
+    log('The troll stuns you!','damage');
+  } else if((eid==='dragon'||eid==='demon')&&Math.random()<0.35){
+    applyStatus(G.player,'burning',{turns:3,dmg:4});
+    log(`${enemy.name} sets you on fire!`,'damage');
+  }
 
   if(G.player.hp<=0){ G.player.alive=false; }
   updateHUD();
+}
+
+function applyStatus(entity, name, params){
+  if(!entity.statuses) entity.statuses={};
+  entity.statuses[name]={...params};
+}
+
+function processStatuses(entity){
+  if(!entity.statuses) return;
+  const isPlayer=entity===G.player;
+  Object.keys(entity.statuses).forEach(key=>{
+    const st=entity.statuses[key];
+    if(key==='poison'){
+      entity.hp-=st.dmg;
+      spawnParticles(entity.x,entity.y,'#2ecc71',4,30,2,0.05);
+      spawnDmgNum(entity.x,entity.y,`☠${st.dmg}`,'#2ecc71');
+      if(isPlayer) log(`Poison deals ${st.dmg} damage!`,'damage');
+    } else if(key==='burning'){
+      entity.hp-=st.dmg;
+      spawnParticles(entity.x,entity.y,'#ff6d00',4,30,2,0.06);
+      spawnDmgNum(entity.x,entity.y,`🔥${st.dmg}`,'#ff6d00');
+      if(isPlayer) log(`Burning deals ${st.dmg} damage!`,'damage');
+    } else if(key==='stunned'){
+      entity.skipTurn=true;
+    }
+    // Decrement turns
+    st.turns--;
+    if(st.turns<=0) delete entity.statuses[key];
+  });
+  if(isPlayer && entity.hp<=0) entity.alive=false;
+}
+
+function showLevelUpModal(){
+  const p=G.player;
+  G.levelUpPending=true;
+  const modal=document.getElementById('levelup-modal');
+  document.getElementById('lu-sub').textContent=`You reached Level ${p.level}!`;
+  const choices=LEVEL_UP_CHOICES[p.cls.id]||LEVEL_UP_CHOICES.warrior;
+  const container=document.getElementById('lu-choices');
+  container.innerHTML='';
+  choices.forEach(ch=>{
+    const card=document.createElement('div');
+    card.className='lu-card';
+    card.innerHTML=`<div class="lu-icon">${ch.icon}</div><div class="lu-name">${ch.name}</div><div class="lu-desc">${ch.desc}</div>`;
+    card.onclick=()=>{
+      ch.apply(p);
+      G.levelUpPending=false;
+      modal.classList.remove('open');
+      updateHUD();
+    };
+    container.appendChild(card);
+  });
+  modal.classList.add('open');
 }
 
 // ── AI MOVEMENT ──────────────────────────────────────────────────
@@ -1369,6 +1870,7 @@ function stepEnemies(){
   G.entities.forEach(e=>{
     if(e.kind!=='enemy'||!e.alive) return;
     if((G.vis[e.y]||[])[e.x]!==2) return; // only visible enemies move
+    if(e.skipTurn){ e.skipTurn=false; return; } // stunned
 
     const dx=G.player.x-e.x, dy=G.player.y-e.y;
     const d=Math.abs(dx)+Math.abs(dy);
@@ -1399,9 +1901,11 @@ function stepEnemies(){
 
 function tryMove(dx, dy){
   if(!G.player.alive||G.state!=='playing') return;
+  if(G.levelUpPending) return; // block movement during level-up choice
   const nx=G.player.x+dx, ny=G.player.y+dy;
   if(nx<0||nx>=MAP_W||ny<0||ny>=MAP_H) return;
-  if(G.dg.map[ny][nx]===T.WALL) return;
+  const tileType=G.dg.map[ny][nx];
+  if(tileType===T.WALL) return;
 
   // Bump attack
   const enemy=G.entities.find(e=>e.kind==='enemy'&&e.alive&&e.x===nx&&e.y===ny);
@@ -1411,7 +1915,32 @@ function tryMove(dx, dy){
   const chest=G.entities.find(e=>e.kind==='chest'&&!e.opened&&e.x===nx&&e.y===ny);
   if(chest){ doOpenChest(chest); G.player.x=nx; G.player.y=ny; endTurn(); return; }
 
+  // Merchant
+  const merchant=G.entities.find(e=>e.kind==='merchant'&&e.x===nx&&e.y===ny);
+  if(merchant){ openShop(merchant); return; } // don't end turn, stop here
+
   G.player.x=nx; G.player.y=ny;
+  SFX.play('step');
+
+  // Water/Lava tile effects
+  if(tileType===T.WATER){
+    log('You wade through water.');
+    // 50% chance to skip enemy turn (slow movement)
+    if(Math.random()<0.5){
+      // Mark that enemies skip this turn
+      G.skipEnemyTurn=true;
+    }
+  } else if(tileType===T.LAVA){
+    const lavaDmg=rng(3,6);
+    G.player.hp-=lavaDmg;
+    spawnParticles(nx,ny,'#ff6d00',10,50,3,0.07);
+    spawnDmgNum(nx,ny,`🔥${lavaDmg}`,'#ff4500');
+    log(`The lava burns you! -${lavaDmg} HP`,'damage');
+    applyStatus(G.player,'burning',{turns:2,dmg:3});
+    SFX.play('hurt');
+    if(G.player.hp<=0) G.player.alive=false;
+    updateHUD();
+  }
 
   // Auto-pick up gold
   const gold=G.entities.find(e=>e.kind==='gold'&&e.x===nx&&e.y===ny);
@@ -1420,11 +1949,15 @@ function tryMove(dx, dy){
     G.entities.splice(G.entities.indexOf(gold),1);
     spawnParticles(nx,ny,'#c9a227',8,50,3,0.05);
     spawnDmgNum(nx,ny,`+${gold.amount}💰`,'#f1c40f');
-    log(`Picked up ${gold.amount} gold.`,'loot'); updateHUD();
+    log(`Picked up ${gold.amount} gold.`,'loot');
+    SFX.play('gold');
+    updateHUD();
   }
 
   // Auto-pick up items if inventory not full
-  const item=G.entities.find(e=>(e.kind==='consumable'||e.kind==='weapon'||e.kind==='armor')&&e.x===nx&&e.y===ny);
+  const item=G.entities.find(e=>(e.kind==='consumable'||e.kind==='weapon'||e.kind==='armor'
+    ||e.kind==='helmet'||e.kind==='shield'||e.kind==='leggings'||e.kind==='boots'
+    ||e.kind==='ring'||e.kind==='amulet')&&e.x===nx&&e.y===ny);
   if(item){
     if(G.player.inventory.length<10){
       G.player.inventory.push({...item});
@@ -1441,6 +1974,7 @@ function tryMove(dx, dy){
 function doOpenChest(chest){
   const loot=openChest(chest, G.player.floor);
   log('You open the chest…','important');
+  SFX.play('chest');
   loot.forEach(item=>{
     if(item.kind==='gold'){
       G.player.gold+=item.amount;
@@ -1461,18 +1995,74 @@ function doOpenChest(chest){
 }
 
 function interactStairs(){
+  if(G.shop){ closeShop(); return; } // close shop with E
   const tile=G.dg.map[G.player.y][G.player.x];
   if(tile===T.STAIR_DOWN){
     G.player.floor++;
     G.player.atkBonus=0;
+    SFX.play('stairs');
     loadFloor(G.player.floor);
     log(`Descended to floor ${G.player.floor}.`,'important');
   } else if(tile===T.STAIR_UP&&G.player.floor>1){
     G.player.floor--;
     G.player.atkBonus=0;
+    SFX.play('stairs');
     loadFloor(G.player.floor);
     log(`Ascended to floor ${G.player.floor}.`,'important');
   }
+}
+
+function openShop(merchant){
+  G.shop=merchant;
+  renderShop();
+  document.getElementById('shop').style.display='flex';
+}
+
+function closeShop(){
+  G.shop=null;
+  document.getElementById('shop').style.display='none';
+}
+
+function renderShop(){
+  const m=G.shop;
+  if(!m) return;
+  const p=G.player;
+  document.getElementById('shop-gold').textContent=`Your gold: ${p.gold} 💰`;
+  const list=document.getElementById('shop-list');
+  list.innerHTML='';
+  if(m.stock.length===0){
+    list.innerHTML='<div style="color:#5a5040;font-size:0.8rem;text-align:center;padding:20px;">Sold out! Come back later.</div>';
+    return;
+  }
+  m.stock.forEach((item,i)=>{
+    const price=itemSellPrice(item)*2;
+    let statText='';
+    if(item.kind==='weapon') statText=`DMG ${item.dmg[0]}–${item.dmg[1]}`;
+    else if(item.def) statText=`DEF +${item.def}`;
+    else if(item.kind==='consumable') statText='consumable';
+    else statText=ringStatStr(item)||'accessory';
+    const row=document.createElement('div');
+    row.className='shop-item';
+    row.innerHTML=`
+      <div class="shop-item-emoji">${item.emoji||'📦'}</div>
+      <div class="shop-item-info">
+        <div class="shop-item-name">${item.name}</div>
+        <div class="shop-item-stat">${statText}</div>
+      </div>
+      <button class="shop-buy-btn" data-idx="${i}">💰 ${price}g</button>`;
+    row.querySelector('.shop-buy-btn').addEventListener('click',()=>{
+      if(p.gold<price){ log('Not enough gold!','damage'); return; }
+      if(p.inventory.length>=10){ log('Inventory full!','damage'); return; }
+      p.gold-=price;
+      p.inventory.push({...item});
+      m.stock.splice(i,1);
+      log(`Bought ${item.name} for ${price} gold.`,'loot');
+      SFX.play('buy');
+      updateHUD();
+      renderShop();
+    });
+    list.appendChild(row);
+  });
 }
 
 function endTurn(){
@@ -1484,7 +2074,27 @@ function endTurn(){
       else G.vis[y][x]=G.seen[y][x]?1:0;
     }
 
-  stepEnemies();
+  // Process player statuses
+  processStatuses(G.player);
+  // Process enemy statuses
+  G.entities.forEach(e=>{
+    if(e.kind==='enemy'&&e.alive) processStatuses(e);
+    if(e.kind==='enemy'&&e.alive&&e.hp<=0){
+      e.alive=false; G.player.kills++;
+      const leveled=G.player.gainXP(e.xp); G.player.gold+=e.goldDrop;
+      log(`${e.name} perished from status effects!`,'loot');
+      SFX.play('death');
+      if(leveled){ log(`★ LEVEL UP! You are now level ${G.player.level}! ★`,'level'); SFX.play('levelup'); showLevelUpModal(); }
+    }
+  });
+
+  updateHUD();
+
+  if(!G.player.alive){ setTimeout(showGameOver,600); return; }
+
+  if(!G.skipEnemyTurn) stepEnemies();
+  G.skipEnemyTurn=false;
+
   updateHUD();
   if(!G.player.alive) setTimeout(showGameOver, 600);
   else saveGame();
@@ -1753,6 +2363,30 @@ function updateHUD(){
   document.getElementById('h-spd').textContent=p.totalSpd;
   document.getElementById('h-maxhp').textContent=ehp;
 
+  // ── Status effects ──────────────────────────────────────────────
+  const statusDiv=document.getElementById('h-statuses');
+  if(statusDiv){
+    statusDiv.innerHTML='';
+    const statusDefs={
+      poison: {label:'🟢 Poisoned',color:'#2ecc71'},
+      burning:{label:'🔥 Burning', color:'#ff6d00'},
+      blessed:{label:'✨ Blessed', color:'#f1c40f'},
+      cursed: {label:'💜 Cursed',  color:'#9b59b6'},
+      stunned:{label:'💫 Stunned', color:'#3498db'},
+    };
+    const st=p.statuses||{};
+    Object.keys(st).forEach(key=>{
+      const def=statusDefs[key];
+      if(!def) return;
+      const pill=document.createElement('span');
+      pill.className='status-pill';
+      pill.style.color=def.color;
+      pill.style.borderColor=def.color+'55';
+      pill.textContent=`${def.label} ${st[key].turns}t`;
+      statusDiv.appendChild(pill);
+    });
+  }
+
   // ── Equipment slot list ─────────────────────────────────────────
   const slots=[
     { label:'Weapon',  icon:'⚔️',  item:p.weapon,   statFn:i=>`DMG ${i.dmg[0]}–${i.dmg[1]}` },
@@ -1853,6 +2487,9 @@ function fireAtTarget(){
       dmg=Math.floor(dmg*1.5);
       log('Holy power smites the undead!','important');
     }
+    // Blessed effect on player
+    applyStatus(p,'blessed',{turns:5});
+    log('You feel divinely blessed!','important');
     actionName='Holy Smite'; color='#fff176';
   } else {
     // Ranged weapon (bow)
@@ -1866,12 +2503,21 @@ function fireAtTarget(){
   spawnDmgNum(target.x,target.y,`-${reduced}`,color);
   log(`${actionName} hits ${target.name} for ${reduced} damage!`);
 
+  SFX.play('spell');
   if(target.hp<=0){
     target.alive=false; p.kills++;
+    // Boss loot
+    if(target.isBoss){
+      for(let li=0;li<3;li++){
+        const lootItem=makeFloorItem(target._bossLootFloor||p.floor);
+        if(lootItem){ lootItem.x=target.x+(li-1); lootItem.y=target.y; G.entities.push(lootItem); }
+      }
+    }
     const leveled=p.gainXP(target.xp); p.gold+=target.goldDrop;
     spawnParticles(target.x,target.y,'#c9a227',14,60,4,0.06);
     log(`${target.name} slain! +${target.xp} XP, +${target.goldDrop} gold.`,'loot');
-    if(leveled){ log(`★ LEVEL UP! You are now level ${p.level}! ★`,'level'); spawnParticles(p.x,p.y,'#4fc3f7',20,80,5,0.03); }
+    SFX.play('death');
+    if(leveled){ log(`★ LEVEL UP! You are now level ${p.level}! ★`,'level'); spawnParticles(p.x,p.y,'#4fc3f7',20,80,5,0.03); SFX.play('levelup'); showLevelUpModal(); }
   }
 
   G.targeting=false;
@@ -1892,6 +2538,15 @@ document.addEventListener('keydown', e=>{
 
   const inv=document.getElementById('inventory');
   const invOpen=inv.style.display==='flex';
+  const shopOpen=!!G.shop;
+
+  // Block everything if level-up modal is showing
+  if(G.levelUpPending) return;
+
+  if(shopOpen){
+    if(e.key==='Escape'||e.key==='e'||e.key==='E'){ e.preventDefault(); closeShop(); }
+    return;
+  }
 
   if(e.key==='i'||e.key==='I'){
     e.preventDefault();
@@ -1997,6 +2652,14 @@ function loadFloor(floor){
   camX=G.player.x*TS+TS/2-canvas.width/2;
   camY=G.player.y*TS+TS/2-canvas.height/2;
   targetCamX=camX; targetCamY=camY;
+
+  // Boss floor announcement
+  if(floor%5===0&&getBossDef(floor)){
+    setTimeout(()=>{
+      log('⚠ A powerful presence fills the dungeon… ⚠','important');
+      SFX.play('boss');
+    },300);
+  }
 }
 
 // ── GAME STATE ───────────────────────────────────────────────────
@@ -2005,6 +2668,7 @@ const G={
   state:'title', player:null, dg:null,
   entities:[], vis:[], seen:[],
   targeting:false, targets:[], targetIdx:0,
+  levelUpPending:false, shop:null, skipEnemyTurn:false,
 };
 
 function showScreen(id){
@@ -2140,6 +2804,7 @@ document.getElementById('btn-title').onclick=()=>{
 document.getElementById('inv-close-btn').onclick=()=>{
   document.getElementById('inventory').style.display='none';
 };
+document.getElementById('shop-close-btn').onclick=()=>closeShop();
 document.getElementById('btn-new-game').onclick=()=>{
   showConfirm(
     'Start New Game?',
