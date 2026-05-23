@@ -673,14 +673,17 @@ function loadCharacter(id){
     const p=G.player;
     p.name=d.name||'Hero';
     p.level=d.level; p.xp=d.xp; p.xpNext=d.xpNext;
-    p.hp=d.hp; p.maxHp=d.maxHp; p.mp=d.mp; p.maxMp=d.maxMp;
     p.atk=d.atk; p.def=d.def; p.spd=d.spd;
     p.gold=d.gold; p.floor=d.floor; p.kills=d.kills;
     p.atkBonus=d.atkBonus||0;
     p.weapon=d.weapon; p.armor=d.armor;
+    // Set accessories before maxHp/maxMp so effectiveMax is correct when hp/mp are clamped
     p.helmet=d.helmet||null; p.shield=d.shield||null;
     p.leggings=d.leggings||null; p.boots=d.boots||null;
     p.ring1=d.ring1||null; p.ring2=d.ring2||null; p.amulet=d.amulet||null;
+    // Set maxHp/maxMp before hp/mp so the setters clamp correctly
+    p.maxHp=d.maxHp; p.maxMp=d.maxMp;
+    p.hp=d.hp; p.mp=d.mp;
     p.inventory=d.inventory||[];
     return true;
   }catch(e){ return false; }
@@ -951,15 +954,15 @@ const AMULETS = {
 const CONSUMABLES = [
   {
     id:'hp_pot', name:'Health Potion', emoji:'🧪', color:'#e53935', rarity: 0,
-    use(p){ const h = Math.min(p.maxHp - p.hp, 15 + p.floor * 3); p.hp += h; return [`Restored ${h} HP.`, 'heal']; }
+    use(p){ const h = Math.min(p.effectiveMaxHp - p.hp, 15 + p.floor * 3); p.hp += h; return [`Restored ${h} HP.`, 'heal']; }
   },
   {
     id:'mp_pot', name:'Mana Potion', emoji:'🧪', color:'#7b1fa2', rarity: 0,
-    use(p){ const m = Math.min(p.maxMp - p.mp, 12 + p.floor * 2); p.mp += m; return [`Restored ${m} MP.`, 'mp']; }
+    use(p){ const m = Math.min(p.effectiveMaxMp - p.mp, 12 + p.floor * 2); p.mp += m; return [`Restored ${m} MP.`, 'mp']; }
   },
   {
     id:'big_hp', name:'Greater Healing', emoji:'🍷', color:'#c0392b', rarity: 2,
-    use(p){ const h = Math.min(p.maxHp - p.hp, 35 + p.floor * 5); p.hp += h; return [`Restored ${h} HP!`, 'heal']; }
+    use(p){ const h = Math.min(p.effectiveMaxHp - p.hp, 35 + p.floor * 5); p.hp += h; return [`Restored ${h} HP!`, 'heal']; }
   },
   {
     id:'str_pot', name:'Strength Elixir', emoji:'🧪', color:'#e65100', rarity: 1,
@@ -2784,11 +2787,11 @@ document.addEventListener('keydown', e=>{
         log('Cannot rest — enemies are nearby!','damage');
       } else {
         const hRestore=Math.ceil(G.player.level/2);
-        const isCaster=G.player.cls.id==='mage'||G.player.cls.id==='cleric';
-        const mRestore=isCaster?1:0;
+        const cls=G.player.cls.id;
+        const mRestore=(cls==='mage'||cls==='cleric')?Math.ceil(G.player.level/3):1;
         G.player.hp=Math.min(G.player.effectiveMaxHp, G.player.hp+hRestore);
-        if(mRestore) G.player.mp=Math.min(G.player.effectiveMaxMp, G.player.mp+mRestore);
-        const mpMsg=mRestore?`, ${mRestore} MP`:'';
+        G.player.mp=Math.min(G.player.effectiveMaxMp, G.player.mp+mRestore);
+        const mpMsg=`, ${mRestore} MP`;
         log(`You rest. Recovered ${hRestore} HP${mpMsg}.`);
         endTurn(); updateHUD();
       }
